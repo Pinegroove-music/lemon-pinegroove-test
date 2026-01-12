@@ -1,0 +1,116 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=Archivo+Black&display=swap');
+
+@theme {
+  --font-archivo: "Archivo Black", sans-serif;
+  --dark-mode: selector;
+
+  --color-sky-50: #f0f9ff;
+  --color-sky-100: #e0f2fe;
+  --color-sky-200: #bae6fd;
+  --color-sky-300: #7dd3fc;
+  --color-sky-400: #38bdf8;
+  --color-sky-500: #0ea5e9;
+  --color-sky-600: #0284c7;
+  --color-sky-700: #0369a1;
+  --color-sky-800: #075985;
+  --color-sky-900: #0c4a6e;
+  --color-sky-950: #082f49;
+}
+
+/* 1. CONFIGURAZIONE ROOT & MOBILE PROTECTION */
+:root {
+  font-family: 'Inter', sans-serif;
+  /* Rimosso color e background-color da qui per evitare il blocco dei contenuti */
+  color-scheme: light; 
+}
+
+/* Applichiamo i colori base al body, non al root, per lasciare che Tailwind lavori */
+body {
+  @apply bg-white text-zinc-900;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  @apply bg-[#09090b] text-[#f4f4f5];
+}
+
+/* 2. GESTIONE TITOLI INTELLIGENTE */
+h1, h2, h3, h4, h5, h6 {
+  color: inherit;
+  transition: color 0.3s ease;
+}
+
+/* Applica il bianco in Dark Mode con bassa specificità */
+:where(html.dark) h1, 
+:where(html.dark) h2, 
+:where(html.dark) h3, 
+:where(html.dark) h4, 
+:where(html.dark) h5, 
+:where(html.dark) h6 {
+  color: #ffffff;
+}
+
+/* 3. PROTEZIONE PER ELEMENTI AZZURRI (SKY) - OTTIMIZZATA */
+/* Usiamo una classe specifica invece di un selettore universale che rompe i link */
+:where(.protect-sky) {
+  color: #0ea5e9 !important;
+}
+
+/* 4. UTILITY UTILS */
+.no-scrollbar::-webkit-scrollbar { 
+  display: none; 
+}
+
+.no-scrollbar { 
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
+}
+
+/* 5. COOKIE CONSENT (CC-MAIN) */
+#cc-main {
+  --cc-font-family: 'Inter', sans-serif;
+  --cc-modal-border-radius: 12px;
+  --cc-btn-border-radius: 8px;
+  --cc-bg: #ffffff;
+  --cc-text: #18181b;
+  --cc-btn-primary-bg: #0ea5e9;
+  --cc-btn-primary-text: #ffffff;
+  --cc-btn-primary-hover-bg: #0284c7;
+  --cc-btn-secondary-bg: #f4f4f5;
+  --cc-btn-secondary-text: #18181b;
+  --cc-btn-secondary-hover-bg: #e4e4e7;
+}
+
+.dark #cc-main, .cc--darkmode #cc-main {
+  --cc-bg: #18181b;
+  --cc-text: #f4f4f5;
+  --cc-btn-secondary-bg: #27272a;
+  --cc-btn-secondary-text: #f4f4f5;
+  --cc-btn-secondary-hover-bg: #3f3f46;
+}
+
+#cc-main .cm {
+  background: #ffffff !important;
+  border: 1px solid #e4e4e7;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  max-width: 320px !important;
+}
+
+.dark #cc-main .cm, .cc--darkmode #cc-main .cm {
+  background: #18181b !important;
+  border: 1px solid #27272a;
+}
+
+#cc-main .cm__btns {
+  flex-direction: column;
+  gap: 8px;
+}
+
+#cc-main .cm__btn {
+  width: 100%;
+  margin-inline-start: 0 !important;
+}
