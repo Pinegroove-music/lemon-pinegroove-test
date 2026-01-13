@@ -5,13 +5,28 @@ import { supabase } from '../services/supabase';
 import { MusicTrack, Album, Coupon, PricingItem } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { Play, Pause, Clock, Music2, Calendar, FileText, Package, ArrowRight, Sparkles, ChevronDown, ChevronUp, Mic2, Download, FileBadge, Zap, CheckCircle2, Info, Loader2, ShoppingCart, Heart, Ticket, Copy, Check } from 'lucide-react';
+import { Play, Pause, Clock, Music2, Calendar, FileText, Package, ArrowRight, Sparkles, ChevronDown, ChevronUp, Mic2, Download, FileBadge, Zap, CheckCircle2, Info, Loader2, ShoppingCart, Heart, Ticket, Copy, Check, Scissors, ListMusic, Megaphone, RotateCcw, Radio } from 'lucide-react';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
 import { getIdFromSlug, createSlug } from '../utils/slugUtils';
 import { FavoriteButton } from '../components/FavoriteButton';
 
 type LicenseOption = 'standard' | 'extended' | 'pro';
+
+const EDIT_DESCRIPTIONS: Record<string, string> = {
+  '60s Edit': 'Optimized for Radio & TV spots',
+  '30s Edit': 'Perfect for Standard Social Ads',
+  'Loop': 'Seamlessly repeatable background',
+  'Stinger': 'Ideal for Logo reveals & Branding'
+};
+
+const getEditIcon = (name: string) => {
+  const n = name.toLowerCase();
+  if (n.includes('loop')) return <RotateCcw size={16} />;
+  if (n.includes('60s') || n.includes('30s')) return <Scissors size={16} />;
+  if (n.includes('stinger')) return <Megaphone size={16} />;
+  return <Music2 size={16} />;
+};
 
 export const TrackDetail: React.FC = () => {
   const { slug } = useParams();
@@ -31,7 +46,7 @@ export const TrackDetail: React.FC = () => {
   
   const navigate = useNavigate();
 
-  const PINEGROOVE_LOGO = "https://pub-2da555791ab446dd9afa8c2352f4f9ea.r2.dev/media/logo-pinegroove.svg";
+  const PINEGROOVE_LOGO = "https://media.pinegroove.net/media/logo-pinegroove.svg";
 
   useEffect(() => {
     if (window.createLemonSqueezy) {
@@ -116,10 +131,6 @@ export const TrackDetail: React.FC = () => {
     return `${item.currency} ${item.price}${type === 'full_catalog' ? '/year' : ''}`;
   };
 
-  const purchase = track ? purchasedTracks.find(p => p.track_id === track.id) : null;
-  const isPurchased = track ? ownedTrackIds.has(track.id) : false;
-  const hasFullAccess = isPurchased || isPro;
-
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
@@ -131,7 +142,7 @@ export const TrackDetail: React.FC = () => {
     
     setDownloadingWav(true);
     try {
-      if (hasFullAccess) {
+      if (ownedTrackIds.has(track.id) || isPro) {
           if (!session) {
               navigate('/auth');
               return;
@@ -204,7 +215,19 @@ export const TrackDetail: React.FC = () => {
     }
   };
 
+  // Gestione dinamica degli edit cuts (Hook moved up to follow Rules of Hooks)
+  const editCuts = useMemo(() => {
+    if (!track?.edit_cuts) return [];
+    if (Array.isArray(track.edit_cuts)) return track.edit_cuts;
+    if (typeof track.edit_cuts === 'string') return track.edit_cuts.split(',').map(s => s.trim());
+    return [];
+  }, [track?.edit_cuts]);
+
   if (!track) return <div className="p-20 text-center opacity-50">Loading track details...</div>;
+
+  const purchase = track ? purchasedTracks.find(p => p.track_id === track.id) : null;
+  const isPurchased = track ? ownedTrackIds.has(track.id) : false;
+  const hasFullAccess = isPurchased || isPro;
 
   const active = currentTrack?.id === track.id && isPlaying;
   
@@ -324,13 +347,13 @@ export const TrackDetail: React.FC = () => {
                     </section>
                 )}
 
-                {/* Track Details Section */}
+                {/* Track Details & Credits Section */}
                 <section className="mb-8">
                     <h3 className="text-xl font-bold mb-6">Track Details</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
         
-                {/* Box 1: Dettagli - Esteso a col-span-2 se non ci sono crediti */}
-                     <div className={`p-6 rounded-2xl border space-y-4 text-sm ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-gray-50 border-gray-200'} ${!hasCredits ? 'md:col-span-2' : ''}`}>
+                {/* Box 1: Dettagli */}
+                     <div className={`p-6 rounded-2xl border space-y-4 text-sm ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
                         <DetailRow label="Duration" value={track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : '-'} icon={<Clock size={16}/>} />
                         <DetailRow label="BPM" value={track.bpm} icon={<Music2 size={16}/>} />
                         <DetailRow label="Released" value={track.year} icon={<Calendar size={16}/>} />
@@ -339,7 +362,7 @@ export const TrackDetail: React.FC = () => {
                     </div>
 
                 {/* Box 2: Credits (Appare solo se esistono) */}
-                {hasCredits && (
+                {hasCredits ? (
                     <div className={`p-6 rounded-2xl border text-sm ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
                         <h4 className="font-bold mb-3 text-sm uppercase tracking-wider opacity-80">Additional Credits</h4>
                         <div className="space-y-2">
@@ -357,8 +380,39 @@ export const TrackDetail: React.FC = () => {
                             ))}
                          </div>
                     </div>
+                        ) : (
+                            <div className={`p-6 rounded-2xl border flex items-center justify-center text-center ${isDarkMode ? 'bg-zinc-900 border-zinc-800 opacity-40' : 'bg-gray-50 border-gray-200 opacity-40'}`}>
+                                <p className="text-xs italic">No additional credits found</p>
+                            </div>
                         )}
                     </div>
+
+                    {/* NEW SECTION: Additional Edits Included */}
+                    {editCuts.length > 0 && (
+                        <div className={`mt-4 p-8 rounded-3xl border ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-emerald-50/30 border-emerald-100 shadow-sm shadow-emerald-500/5'}`}>
+                            <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                                <ListMusic size={18} /> Additional Edits Included in your License:
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-5">
+                                {editCuts.map((cut, idx) => (
+                                    <div key={idx} className="flex items-start gap-4 animate-in fade-in slide-in-from-left duration-300" style={{ animationDelay: `${idx * 100}ms` }}>
+                                        <div className={`p-2 rounded-xl shrink-0 ${isDarkMode ? 'bg-zinc-800 text-sky-400' : 'bg-white text-sky-600 shadow-sm border border-sky-100'}`}>
+                                            {getEditIcon(cut)}
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-sm leading-none mb-1">{cut}</p>
+                                            <p className="text-xs opacity-60 font-medium">{EDIT_DESCRIPTIONS[cut] || 'Alternative version for flexible editing'}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-8 pt-6 border-t border-dashed border-zinc-200 dark:border-zinc-800">
+                                <p className="text-[10px] font-black uppercase tracking-widest opacity-40 text-center">
+                                    All versions are included in the high-quality ZIP file after purchase.
+                                </p>
+                            </div>
+                        </div>
+                    )}
                 </section>
 
                 {/* Tags Section */}
