@@ -323,14 +323,19 @@ export const TrackDetail: React.FC = () => {
                                     View Pack <ArrowRight size={16} />
                                 </Link>
                             </div>
-                            <img src={relatedAlbum.cover_url} alt="" className="w-24 h-24 rounded-lg object-cover shadow-lg rotate-3 group-hover:rotate-0 transition-transform duration-500 shrink-0" />
+                            <Link 
+                                to={`/music-packs/${createSlug(relatedAlbum.id, relatedAlbum.title)}`}
+                                className="w-24 h-24 rounded-lg overflow-hidden shadow-lg rotate-3 group-hover:rotate-0 transition-transform duration-500 shrink-0 hover:scale-105 active:scale-95"
+                            >
+                                <img src={relatedAlbum.cover_url} alt="" className="w-full h-full object-cover" />
+                            </Link>
                         </div>
                     </section>
                 )}
 
                 <section className="mb-8">
                     <h3 className="text-xl font-bold mb-6">Track Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <div className={`grid grid-cols-1 ${hasCredits ? 'md:grid-cols-2' : ''} gap-4 items-start`}>
                      <div className={`p-6 rounded-2xl border space-y-4 text-sm ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
                         <DetailRow label="Duration" value={track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : '-'} icon={<Clock size={16}/>} />
                         <DetailRow label="BPM" value={track.bpm} icon={<Music2 size={16}/>} />
@@ -339,7 +344,7 @@ export const TrackDetail: React.FC = () => {
                         <DetailRow label="ISWC" value={track.iswc} icon={<FileText size={16}/>} />
                     </div>
 
-                {hasCredits ? (
+                {hasCredits && (
                     <div className={`p-6 rounded-2xl border text-sm ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
                         <h4 className="font-bold mb-3 text-sm uppercase tracking-wider opacity-80">Additional Credits</h4>
                         <div className="space-y-2">
@@ -357,11 +362,7 @@ export const TrackDetail: React.FC = () => {
                             ))}
                          </div>
                     </div>
-                        ) : (
-                            <div className={`p-6 rounded-2xl border flex items-center justify-center text-center ${isDarkMode ? 'bg-zinc-900 border-zinc-800 opacity-40' : 'bg-gray-50 border-gray-200 opacity-40'}`}>
-                                <p className="text-xs italic">No additional credits found</p>
-                            </div>
-                        )}
+                )}
                     </div>
 
                     {editCuts.length > 0 && (
