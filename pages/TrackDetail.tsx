@@ -145,7 +145,12 @@ export const TrackDetail: React.FC = () => {
               const blob = await response.blob();
               const blobUrl = window.URL.createObjectURL(blob);
               const link = document.createElement('a');
-              link.href = blobUrl; link.setAttribute('download', `${track.title}.wav`);
+              link.href = blobUrl; 
+              
+              // Logica dinamica per estensione
+              const extension = track.wav_r2_key?.toLowerCase().endsWith('.zip') ? '.zip' : '.wav';
+              link.setAttribute('download', `${track.title}${extension}`);
+              
               document.body.appendChild(link); link.click(); 
               document.body.removeChild(link);
               window.URL.revokeObjectURL(blobUrl);
@@ -261,11 +266,7 @@ export const TrackDetail: React.FC = () => {
                     </Link>
                 </h2>
 
-                <div className={`h-32 w-full rounded-xl mb-6 px-6 flex items-center gap-6 shadow-inner border transition-colors duration-300 ${
-    isDarkMode 
-    ? 'bg-zinc-900 border-zinc-800' 
-    : 'bg-zinc-50 border-zinc-200'
-}`}>
+                <div className="h-32 w-full bg-zinc-50 dark:bg-zinc-900 rounded-xl mb-6 px-6 flex items-center gap-6 shadow-inner border border-zinc-200 dark:border-zinc-800">
                     <button onClick={() => playTrack(track, [track, ...recommendations])} className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition hover:scale-105 shadow-md ${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
                         {active ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1"/>}
                     </button>
@@ -281,7 +282,7 @@ export const TrackDetail: React.FC = () => {
                         className={`flex-1 md:flex-none px-10 py-4 rounded-full font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-3 active:scale-95 ${hasFullAccess ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}`}
                     >
                         {downloadingWav ? <Loader2 className="animate-spin" /> : <Download size={20} />}
-                        {hasFullAccess ? 'Download Track (WAV)' : 'Download Preview (MP3)'}
+                        {hasFullAccess ? `Download ${track.wav_r2_key?.toLowerCase().endsWith('.zip') ? 'ZIP' : 'WAV'}` : 'Download Preview (MP3)'}
                     </button>
                     
                     <div className={`p-1.5 rounded-full border shadow-lg transition-transform hover:scale-110 active:scale-90 ${isDarkMode ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-zinc-200'}`}>
@@ -479,7 +480,7 @@ export const TrackDetail: React.FC = () => {
                   
                   <div className={`p-4 rounded-xl border text-center ${isDarkMode ? 'bg-sky-500/5 border-sky-500/20' : 'bg-sky-50 border-sky-100'}`}>
                     <p className="text-[10px] md:text-xs opacity-70 leading-relaxed font-medium">
-                        By purchasing a license, you will receive a 44.1 kHz watermark-free .wav version of the track, downloadable at any time from your personal account area or from this page.
+                        By purchasing a license, you will receive a 44.1 kHz watermark-free version of the track, downloadable at any time from your personal account area or from this page.
                     </p>
                   </div>
                 </div>
