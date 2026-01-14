@@ -5,7 +5,7 @@ import { supabase } from '../services/supabase';
 import { MusicTrack, Album, Coupon, PricingItem } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { Play, Pause, Clock, Music2, Calendar, FileText, Package, ArrowRight, Sparkles, X, Mic2, Download, FileBadge, Zap, CheckCircle2, Info, Loader2, ShoppingCart, Heart, Ticket, Copy, Check, Scissors, ListMusic, Megaphone, RotateCcw, Radio } from 'lucide-react';
+import { Play, Pause, Clock, Music2, Calendar, FileText, Package, ArrowRight, Sparkles, ChevronDown, ChevronUp, Mic2, Download, FileBadge, Zap, CheckCircle2, Info, Loader2, ShoppingCart, Heart, Ticket, Copy, Check, Scissors, ListMusic, Megaphone, RotateCcw, Radio, X } from 'lucide-react';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
 import { getIdFromSlug, createSlug } from '../utils/slugUtils';
@@ -38,14 +38,17 @@ export const TrackDetail: React.FC = () => {
   const { isPro, openSubscriptionCheckout } = useSubscription();
   const [selectedLicense, setSelectedLicense] = useState<LicenseOption>('standard');
   const [downloadingWav, setDownloadingWav] = useState(false);
-  const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
   
-  // Coupon state
   const [trackCoupon, setTrackCoupon] = useState<Coupon | null>(null);
   const [proCoupon, setProCoupon] = useState<Coupon | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   
+  // New: Lyrics Modal State
+  const [isLyricsOpen, setIsLyricsOpen] = useState(false);
+  
   const navigate = useNavigate();
+
+  const PINEGROOVE_LOGO = "https://media.pinegroove.net/media/logo-pinegroove.svg";
 
   useEffect(() => {
     if (window.createLemonSqueezy) {
@@ -58,9 +61,7 @@ export const TrackDetail: React.FC = () => {
 
     if (id) {
       window.scrollTo(0, 0); 
-      setIsLyricsModalOpen(false);
       
-      // Fetch Track Data
       supabase.from('squeeze_tracks').select('*').eq('id', id).single()
         .then(({ data: trackData }) => {
           if (trackData) {
@@ -102,13 +103,11 @@ export const TrackDetail: React.FC = () => {
           }
         });
         
-      // Fetch dynamic prices
       supabase.from('pricing').select('*')
         .then(({ data: pData }) => {
             if (pData) setPricingData(pData as PricingItem[]);
         });
 
-      // Fetch specific promo coupons
       supabase.from('coupons')
         .select('*')
         .in('id', ['1cc9b63f-7a17-46c7-99b8-2d05d1bcc883', '6237aa1b-f40c-41c2-aac5-070fb0a11ba7'])
@@ -124,16 +123,6 @@ export const TrackDetail: React.FC = () => {
     }
   }, [slug]);
 
-  // Handle ESC key to close modal
-  useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsLyricsModalOpen(false);
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, []);
-
-  // Pricing Helpers
   const getDynamicPrice = (type: string, defaultPrice: string) => {
     const item = pricingData.find(p => p.product_type === type);
     if (!item) return defaultPrice;
@@ -166,11 +155,8 @@ export const TrackDetail: React.FC = () => {
               const blobUrl = window.URL.createObjectURL(blob);
               const link = document.createElement('a');
               link.href = blobUrl; 
-              
-              // Logica dinamica per estensione
               const extension = track.wav_r2_key?.toLowerCase().endsWith('.zip') ? '.zip' : '.wav';
               link.setAttribute('download', `${track.title}${extension}`);
-              
               document.body.appendChild(link); link.click(); 
               document.body.removeChild(link);
               window.URL.revokeObjectURL(blobUrl);
@@ -224,7 +210,6 @@ export const TrackDetail: React.FC = () => {
     }
   };
 
-  // Gestione dinamica degli edit cuts
   const editCuts = useMemo(() => {
     if (!track?.edit_cuts) return [];
     if (Array.isArray(track.edit_cuts)) return track.edit_cuts;
@@ -237,9 +222,7 @@ export const TrackDetail: React.FC = () => {
   const purchase = track ? purchasedTracks.find(p => p.track_id === track.id) : null;
   const isPurchased = track ? ownedTrackIds.has(track.id) : false;
   const hasFullAccess = isPurchased || isPro;
-
   const active = currentTrack?.id === track.id && isPlaying;
-  
   const ownsStandard = isPurchased && purchase?.license_type?.toLowerCase().includes('standard');
   const ownsExtended = isPurchased && purchase?.license_type?.toLowerCase().includes('extended');
 
@@ -250,17 +233,7 @@ export const TrackDetail: React.FC = () => {
     ));
   };
 
-  const formatLyrics = (lyrics: string | null) => {
-    if (!lyrics) return null;
-    return lyrics.split('\n').map((line, i) => (
-      <span key={i} className="block mb-1">{line}</span>
-    ));
-  };
-
-  // Formattazione durata ISO 8601 per Schema.org (es. PT3M45S)
   const durationISO = track.duration ? `PT${Math.floor(track.duration / 60)}M${track.duration % 60}S` : undefined;
-
-  // Verifica se esistono crediti extra
   const hasCredits = track.credits && Array.isArray(track.credits) && track.credits.length > 0;
 
   return (
@@ -278,7 +251,6 @@ export const TrackDetail: React.FC = () => {
           }}
         />
 
-        {/* Top Header Section */}
         <div className="flex flex-col md:flex-row gap-8 lg:gap-12 mb-12 items-start">
             <div className="w-full max-w-md md:w-80 lg:w-96 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-2xl relative group mx-auto md:mx-0">
                 <img src={track.cover_url} alt={track.title} className="w-full h-full object-cover" />
@@ -304,13 +276,13 @@ export const TrackDetail: React.FC = () => {
                         {track.artist_name}
                     </Link>
                     {track.artist_ipi && (
-                        <span className="text-base font-normal opacity-50">
+                        <span className="text-lg opacity-40 font-medium whitespace-nowrap">
                             (IPI: {track.artist_ipi})
                         </span>
                     )}
                 </h2>
 
-                <div className="h-32 w-full bg-zinc-50 dark:bg-zinc-900 rounded-xl mb-6 px-6 flex items-center gap-6 shadow-inner border border-zinc-200 dark:border-zinc-800">
+                <div className={`h-32 w-full rounded-xl mb-6 px-6 flex items-center gap-6 shadow-inner border transition-colors duration-300 ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}>
                     <button onClick={() => playTrack(track, [track, ...recommendations])} className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition hover:scale-105 shadow-md ${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
                         {active ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1"/>}
                     </button>
@@ -336,10 +308,7 @@ export const TrackDetail: React.FC = () => {
             </div>
         </div>
 
-        {/* Content Section: Two Columns */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            
-            {/* Left Column: Info & Details (7/12) */}
             <div className="lg:col-span-7 space-y-12">
                 <section>
                     <h3 className="text-2xl font-black mb-6 border-b pb-2 border-sky-500/20">About this track</h3>
@@ -347,22 +316,20 @@ export const TrackDetail: React.FC = () => {
                         {formatDescription(track.description)}
                     </div>
                     
-                    {/* Lyrics Modal Trigger Button */}
+                    {/* View Lyrics Button */}
                     {track.lyrics && (
-                      <div className="mt-8 border-t border-dashed border-zinc-200 dark:border-zinc-800 pt-6">
+                      <div className="mt-8">
                         <button 
-                          onClick={() => setIsLyricsModalOpen(true)}
-                          className="flex items-center gap-2 text-sky-600 dark:text-sky-400 font-bold hover:text-sky-500 transition-colors group px-6 py-3 rounded-xl bg-sky-500/5 hover:bg-sky-500/10 border border-sky-500/10"
+                          onClick={() => setIsLyricsOpen(true)}
+                          className={`flex items-center gap-3 px-6 py-3 rounded-xl font-bold transition-all transform hover:-translate-y-0.5 active:scale-95 ${isDarkMode ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700' : 'bg-white hover:bg-gray-50 text-zinc-800 border border-zinc-200 shadow-sm'}`}
                         >
-                          <Mic2 size={18} className="group-hover:rotate-12 transition-transform" />
-                          <span>View Lyrics</span>
-                          <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                          <Mic2 size={20} className="text-sky-500" />
+                          View Lyrics
                         </button>
                       </div>
                     )}
                 </section>
 
-                {/* Music Pack Card */}
                 {relatedAlbum && (
                     <section>
                         <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-700 text-white shadow-xl flex flex-col sm:flex-row items-center gap-6 overflow-hidden relative group">
@@ -377,17 +344,19 @@ export const TrackDetail: React.FC = () => {
                                     View Pack <ArrowRight size={16} />
                                 </Link>
                             </div>
-                            <img src={relatedAlbum.cover_url} alt="" className="w-24 h-24 rounded-lg object-cover shadow-lg rotate-3 group-hover:rotate-0 transition-transform duration-500 shrink-0" />
+                            <Link 
+                                to={`/music-packs/${createSlug(relatedAlbum.id, relatedAlbum.title)}`}
+                                className="w-24 h-24 rounded-lg overflow-hidden shadow-lg rotate-3 group-hover:rotate-0 transition-transform duration-500 shrink-0 hover:scale-105 active:scale-95"
+                            >
+                                <img src={relatedAlbum.cover_url} alt="" className="w-full h-full object-cover" />
+                            </Link>
                         </div>
                     </section>
                 )}
 
-                {/* Track Details & Credits Section */}
                 <section className="mb-8">
                     <h3 className="text-xl font-bold mb-6">Track Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-        
-                {/* Box 1: Dettagli */}
+                    <div className={`grid grid-cols-1 ${hasCredits ? 'md:grid-cols-2' : ''} gap-4 items-start`}>
                      <div className={`p-6 rounded-2xl border space-y-4 text-sm ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
                         <DetailRow label="Duration" value={track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : '-'} icon={<Clock size={16}/>} />
                         <DetailRow label="BPM" value={track.bpm} icon={<Music2 size={16}/>} />
@@ -396,8 +365,7 @@ export const TrackDetail: React.FC = () => {
                         <DetailRow label="ISWC" value={track.iswc} icon={<FileText size={16}/>} />
                     </div>
 
-                {/* Box 2: Credits (Appare solo se esistono) */}
-                {hasCredits ? (
+                {hasCredits && (
                     <div className={`p-6 rounded-2xl border text-sm ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-gray-50 border-gray-200'}`}>
                         <h4 className="font-bold mb-3 text-sm uppercase tracking-wider opacity-80">Additional Credits</h4>
                         <div className="space-y-2">
@@ -415,14 +383,9 @@ export const TrackDetail: React.FC = () => {
                             ))}
                          </div>
                     </div>
-                        ) : (
-                            <div className={`p-6 rounded-2xl border flex items-center justify-center text-center ${isDarkMode ? 'bg-zinc-900 border-zinc-800 opacity-40' : 'bg-gray-50 border-gray-200 opacity-40'}`}>
-                                <p className="text-xs italic">No additional credits found</p>
-                            </div>
-                        )}
+                )}
                     </div>
 
-                    {/* NEW SECTION: Additional Edits Included */}
                     {editCuts.length > 0 && (
                         <div className={`mt-4 p-8 rounded-3xl border ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-emerald-50/30 border-emerald-100 shadow-sm shadow-emerald-500/5'}`}>
                             <h3 className="text-lg font-bold mb-6 flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
@@ -450,7 +413,6 @@ export const TrackDetail: React.FC = () => {
                     )}
                 </section>
 
-                {/* Tags Section */}
                 {track.tags && Array.isArray(track.tags) && track.tags.length > 0 && (
                     <section className="mb-8">
                         <h3 className="text-lg font-bold mb-6">Tags</h3>
@@ -464,7 +426,6 @@ export const TrackDetail: React.FC = () => {
                     </section>
                 )}
 
-                {/* Genres Section */}
                 {(Array.isArray(track.genre) ? track.genre : track.genre ? [track.genre] : []).length > 0 && (
                     <section className="mb-8">
                         <h3 className="text-lg font-bold mb-4">Genres</h3>
@@ -479,12 +440,10 @@ export const TrackDetail: React.FC = () => {
                 )}
             </div>
 
-            {/* Right Column: Licensing Selection (5/12) */}
             <div className="lg:col-span-5 space-y-6">
                 <h3 className="text-2xl font-black mb-6 border-b pb-2 border-sky-500/20">Select License</h3>
                 
                 <div className="space-y-4">
-                    {/* Standard License Card */}
                     <LicenseCard 
                         id="standard"
                         title="Standard Sync License"
@@ -506,7 +465,6 @@ export const TrackDetail: React.FC = () => {
                         copiedCode={copiedCode}
                     />
 
-                    {/* Extended License Card */}
                     <LicenseCard 
                         id="extended"
                         title="Extended Sync License"
@@ -530,7 +488,6 @@ export const TrackDetail: React.FC = () => {
                         copiedCode={copiedCode}
                     />
 
-                    {/* PRO Subscription Card */}
                     <LicenseCard 
                         id="pro"
                         title="PRO Subscription"
@@ -576,7 +533,6 @@ export const TrackDetail: React.FC = () => {
             </div>
         </div>
 
-        {/* Recommendations Section */}
         {recommendations.length > 0 && (
             <div className="pt-12 mt-20 border-t border-gray-200 dark:border-zinc-800">
                 <h3 className="text-2xl font-bold mb-8 flex items-center gap-2">
@@ -602,45 +558,42 @@ export const TrackDetail: React.FC = () => {
             </div>
         )}
 
-        {/* Lyrics Modal Overlay */}
-        {isLyricsModalOpen && track.lyrics && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
-            {/* Backdrop */}
+        {/* Lyrics Modal */}
+        {isLyricsOpen && track.lyrics && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-6">
             <div 
-              className="absolute inset-0 bg-black/70 backdrop-blur-md" 
-              onClick={() => setIsLyricsModalOpen(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300"
+              onClick={() => setIsLyricsOpen(false)}
             />
             
-            {/* Modal Content */}
-            <div className={`
-              relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-[2.5rem] shadow-2xl border overflow-hidden animate-in zoom-in-95 duration-300
-              ${isDarkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-100'}
-            `}>
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 sm:p-8 border-b border-zinc-500/10">
-                <div>
-                  <h4 className="text-xs font-black uppercase tracking-[0.2em] text-sky-500 mb-1">Track Lyrics</h4>
-                  <h3 className="text-xl font-bold truncate pr-4">{track.title}</h3>
+            <div className={`relative w-full max-w-2xl max-h-[85vh] flex flex-col rounded-[2.5rem] border shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 ${isDarkMode ? 'bg-zinc-950 border-zinc-800 text-white' : 'bg-white border-zinc-200 text-zinc-900'}`}>
+              <div className="p-6 md:p-8 border-b border-zinc-500/10 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-sky-500/10 rounded-lg">
+                    <Mic2 className="text-sky-500" size={24} />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-black tracking-tight">Lyrics</h2>
+                    <p className="text-[10px] md:text-xs opacity-50 font-black uppercase tracking-widest">{track.title}</p>
+                  </div>
                 </div>
                 <button 
-                  onClick={() => setIsLyricsModalOpen(false)}
-                  className={`p-2.5 rounded-full transition-all hover:rotate-90 ${isDarkMode ? 'hover:bg-zinc-800 text-zinc-400' : 'hover:bg-zinc-100 text-zinc-500'}`}
+                  onClick={() => setIsLyricsOpen(false)}
+                  className={`p-2 rounded-full transition-colors ${isDarkMode ? 'hover:bg-zinc-800 text-zinc-400' : 'hover:bg-gray-100 text-zinc-500'}`}
                 >
                   <X size={24} />
                 </button>
               </div>
-              
-              {/* Lyrics Area - Scrollable */}
-              <div className="flex-1 overflow-y-auto p-8 sm:p-12 no-scrollbar">
-                <div className={`italic font-serif text-xl sm:text-2xl leading-[1.8] text-center ${isDarkMode ? 'text-zinc-200' : 'text-zinc-700'}`}>
-                  {formatLyrics(track.lyrics)}
+
+              <div className="flex-1 overflow-y-auto p-8 md:p-12 no-scrollbar">
+                <div className="text-lg md:text-2xl leading-relaxed whitespace-pre-line font-medium opacity-90 text-center italic font-serif">
+                  {track.lyrics}
                 </div>
               </div>
 
-              {/* Modal Footer */}
-              <div className={`p-6 text-center border-t border-zinc-500/10 ${isDarkMode ? 'bg-zinc-900/50' : 'bg-gray-50'}`}>
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-40">
-                  © {track.year || new Date().getFullYear()} Francesco Biondi / Pinegroove Music
+              <div className={`p-4 text-center border-t border-zinc-500/10 shrink-0 ${isDarkMode ? 'bg-zinc-900/50' : 'bg-zinc-50'}`}>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-30">
+                  &copy; {track.year || new Date().getFullYear()} {track.artist_name} / Pinegroove
                 </p>
               </div>
             </div>
@@ -676,11 +629,20 @@ interface LicenseCardProps {
 }
 
 const LicenseCard: React.FC<LicenseCardProps> = ({ id, title, price, selected, locked, onClick, features, infoLink, highlight, isDarkMode, coupon, onCopyCoupon, copiedCode }) => {
+    // Usiamo costanti di colore fisse basate sullo stato per prevenire sovrascritture del browser
+    const titleColor = selected 
+        ? 'text-sky-500' 
+        : (isDarkMode ? 'text-white' : 'text-zinc-900');
+    
+    const priceColor = selected 
+        ? 'text-sky-500' 
+        : (isDarkMode ? 'text-white' : 'text-zinc-900');
+
     if (locked) {
         return (
             <div className={`relative p-6 rounded-2xl border-2 border-emerald-500/30 opacity-80 ${isDarkMode ? 'bg-zinc-900/50' : 'bg-emerald-50/30'}`}>
                 <div className="flex items-center justify-between mb-4">
-                    <h4 className="font-black text-lg">{title}</h4>
+                    <h4 className="font-black text-lg text-zinc-900 dark:text-white">{title}</h4>
                     <CheckCircle2 size={24} className="text-emerald-500" />
                 </div>
                 <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400 mb-2">License is active for this product</p>
@@ -705,15 +667,15 @@ const LicenseCard: React.FC<LicenseCardProps> = ({ id, title, price, selected, l
             )}
             
             <div className="flex items-center justify-between">
-                <h4 className={`font-black text-lg leading-tight transition-colors duration-300 ${selected ? 'text-sky-600 dark:text-sky-400' : 'text-zinc-900 dark:text-white'}`}>{title}</h4>
-                <div className={`text-xl font-black transition-colors duration-300 ${selected ? 'text-sky-600 dark:text-sky-400' : 'text-zinc-900 dark:text-white'}`}>{price}</div>
+                <h4 className={`font-black text-lg leading-tight transition-colors duration-300 ${titleColor}`}>{title}</h4>
+                <div className={`text-xl font-black transition-colors duration-300 ${priceColor}`}>{price}</div>
             </div>
 
             {selected && (
                 <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
                     <ul className="space-y-2 mb-4">
                         {features.map((f, i) => (
-                            <li key={i} className="text-xs opacity-70 flex items-start gap-2">
+                            <li key={i} className="text-xs opacity-70 flex items-start gap-2 text-zinc-600 dark:text-zinc-400">
                                 <div className="mt-1 w-1 h-1 bg-current rounded-full shrink-0" />
                                 {f}
                             </li>
@@ -730,7 +692,6 @@ const LicenseCard: React.FC<LicenseCardProps> = ({ id, title, price, selected, l
                         </Link>
                     </div>
 
-                    {/* Reveal Coupon only when selected */}
                     {coupon && (
                       <div className={`mt-4 animate-in fade-in slide-in-from-top-4 duration-500 p-4 rounded-xl border flex items-center gap-4 transition-all shadow-lg ${id === 'pro' ? 'bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-amber-950 border-amber-300/50' : 'bg-gradient-to-br from-purple-600 via-indigo-700 to-purple-800 text-white border-white/10'}`}>
                         <div className={`p-2 rounded-xl backdrop-blur-md ${id === 'pro' ? 'bg-black/10' : 'bg-white/10'}`}>
@@ -738,7 +699,7 @@ const LicenseCard: React.FC<LicenseCardProps> = ({ id, title, price, selected, l
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[10px] md:text-xs font-bold leading-snug">
-                            Save {coupon.discount_percent}% with code: <span className={`font-black tracking-widest ${id === 'pro' ? 'text-amber-900' : 'text-purple-200'}`}>{coupon.discount_code}</span>
+                            Save {coupon.discount_percent}% with code: <span className={`font-black tracking-widest ${id === 'pro' ? 'text-amber-950' : 'text-purple-200'}`}>{coupon.discount_code}</span>
                           </p>
                         </div>
                         <button 
