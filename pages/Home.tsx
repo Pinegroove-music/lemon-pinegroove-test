@@ -624,8 +624,8 @@ export const Home: React.FC = () => {
       </section>
 
       <section className="w-full max-w-[1920px] mx-auto px-6 lg:px-10 text-center">
-        <Search h2 className="text-2xl font-bold mb-6 flex items-center justify-start gap-2">
-          <span className="text-sky-500">✦</span> Browse By Genre
+        <h2 className="text-2xl font-bold mb-6 flex items-center justify-start gap-2">
+          <Search span className="text-sky-500"></span> Browse By Genre
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {popularGenres.map((genre, index) => {
