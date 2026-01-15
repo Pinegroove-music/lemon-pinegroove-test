@@ -458,8 +458,8 @@ export const Home: React.FC = () => {
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <span className="text-sky-500">✦</span> Discover New Music
         </h2>
-        <p className="max-w-2xl mb-12 opacity-70 text-lg font-medium leading-relaxed">
-        Curated collections of our best tracks. Get fully licensed albums for a fraction of the cost.
+        <p className="w-full mb-12 opacity-70 text-lg font-medium leading-relaxed">
+        A selection from the Pinegroove catalog — original tracks crafted for film, video and digital media.
       </p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {discoverTracks.map(track => {
