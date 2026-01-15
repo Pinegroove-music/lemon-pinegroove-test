@@ -399,10 +399,10 @@ export const Home: React.FC = () => {
 
          <div className="relative w-full max-w-[1920px] mx-auto px-6 text-white mb-6 md:mb-8">
             <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-3 tracking-tight drop-shadow-md leading-tight max-w-4xl mx-auto">
-                Find the perfect sound for your story.
+                A Boutique Music Library for Visual Storytelling
             </h1>
             <p className="text-sm md:text-base mb-6 opacity-90 max-w-2xl mx-auto font-medium drop-shadow-sm">
-                High-quality stock music by composer Francesco Biondi.
+                Original music by composer Francesco Biondi, licensed directly with simple, flexible sync terms and full copyright protection.
             </p>
             
             <form 
