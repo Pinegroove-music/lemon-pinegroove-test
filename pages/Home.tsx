@@ -3,7 +3,7 @@ import { MusicTrack, Client, Album, MediaTheme, Coupon, PricingItem } from '../t
 import { supabase } from '../services/supabase';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { Search, Play, ShoppingCart, Pause, ArrowRight, Sparkles, FileCheck, ShieldCheck, Lock, Disc, Mail, Clapperboard, Music, User, CreditCard, Download, ChevronDown, Loader2, AlertCircle, Check, Ticket, Copy, Info, Zap, Globe, Tv, Crown } from 'lucide-react';
+import { Search, Play, ShoppingCart, Pause, ArrowRight, Sparkles, FileCheck, ShieldCheck, Lock, Disc, Mail, Clapperboard, Music, User, CreditCard, Download, ChevronDown, Loader2, AlertCircle, Check, Ticket, Copy, Info, Zap, Globe, Search, Tv, Crown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
@@ -458,9 +458,6 @@ export const Home: React.FC = () => {
         <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <span className="text-sky-500">✦</span> Discover New Music
         </h2>
-        <p className="w-full mb-12 opacity-70 text-lg font-medium leading-relaxed">
-        A selection from the Pinegroove catalog — original tracks crafted for film, video and digital media.
-      </p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
           {discoverTracks.map(track => {
               const active = currentTrack?.id === track.id && isPlaying;
@@ -602,7 +599,7 @@ export const Home: React.FC = () => {
             {
               icon: <FileCheck size={28} />,
               title: "Simple Licensing",
-              desc: "Pay once, use forever. No recurring fees, no hidden costs. Simple royalty-free licenses."
+              desc: "One-time payment, clear and flexible sync licenses. No recurring fees, no hidden costs."
             },
             {
               icon: <ShieldCheck size={28} />,
@@ -627,7 +624,7 @@ export const Home: React.FC = () => {
       </section>
 
       <section className="w-full max-w-[1920px] mx-auto px-6 lg:px-10 text-center">
-        <h2 className="text-2xl font-bold mb-6 flex items-center justify-start gap-2">
+        <Search h2 className="text-2xl font-bold mb-6 flex items-center justify-start gap-2">
           <span className="text-sky-500">✦</span> Browse By Genre
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
