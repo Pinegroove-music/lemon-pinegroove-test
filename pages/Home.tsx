@@ -3,7 +3,7 @@ import { MusicTrack, Client, Album, MediaTheme, Coupon, PricingItem } from '../t
 import { supabase } from '../services/supabase';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { Search, Play, ShoppingCart, Pause, ArrowRight, Sparkles, FileCheck, ShieldCheck, Lock, Disc, Mail, Clapperboard, Music, User, CreditCard, Download, ChevronDown, Loader2, AlertCircle, Check, Ticket, Copy, Info, Zap, Globe, Search, Tv, Crown } from 'lucide-react';
+import { Search, Play, ShoppingCart, Pause, ArrowRight, Sparkles, FileCheck, ShieldCheck, Lock, Disc, Mail, Clapperboard, Music, User, CreditCard, Download, ChevronDown, Loader2, AlertCircle, Check, Ticket, Copy, Info, Zap, Globe, Tv, Crown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
@@ -625,7 +625,7 @@ export const Home: React.FC = () => {
 
       <section className="w-full max-w-[1920px] mx-auto px-6 lg:px-10 text-center">
         <h2 className="text-2xl font-bold mb-6 flex items-center justify-start gap-2">
-          <Search span className="text-sky-500"></span> Browse By Genre
+          <span className="text-sky-500">✦</span> Browse By Genre
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {popularGenres.map((genre, index) => {
