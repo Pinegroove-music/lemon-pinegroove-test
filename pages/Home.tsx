@@ -663,7 +663,7 @@ export const Home: React.FC = () => {
             <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
                 <Disc className="text-sky-500" size={24}/> Featured Music Pack
             </h2>
-            
+            <p className="w-full mb-12 opacity-70 text-lg font-medium leading-relaxed">Discover curated track collections — perfect for larger projects and cost-effective licensing. </p>
             <div className="relative w-full rounded-3xl overflow-hidden shadow-2xl group">
                 <div className="absolute inset-0 z-0">
                     <img 
