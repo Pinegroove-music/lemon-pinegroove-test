@@ -3,7 +3,7 @@ import { supabase } from '../services/supabase';
 import { MusicTrack } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { Play, Pause, ShoppingCart, Filter, ChevronDown, ChevronRight, ArrowRight, X, Mic2, ChevronLeft, Sparkles, Check, Trash2, LayoutList, LayoutGrid, Download, Zap, Loader2, RotateCcw, Blend, Megaphone, ArrowUpDown } from 'lucide-react';
+import { Play, Pause, ShoppingCart, Filter, ChevronDown, ChevronRight, ArrowRight, X, Mic2, ChevronLeft, Sparkles, Check, Trash2, LayoutList, LayoutGrid, Download, Zap, Loader2, RotateCcw, Blend, Megaphone, ArrowUpDown, Scissors, ListMusic } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
@@ -69,13 +69,13 @@ export const Library: React.FC = () => {
         
         // Sorting Logic
         if (sortBy === 'relevance') {
-            // Random shuffle for relevance (current behavior)
+            // Random shuffle for relevance
             for (let i = allTracks.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [allTracks[i], allTracks[j]] = [allTracks[j], allTracks[i]];
             }
         } else if (sortBy === 'newest') {
-            // Sort by year reverse (2026, 2025, 2024...)
+            // Sort by year reverse
             allTracks.sort((a, b) => {
                 const yearA = a.year || 0;
                 const yearB = b.year || 0;
@@ -142,7 +142,6 @@ export const Library: React.FC = () => {
                 return terms.some(t => trackString.includes(t));
             });
 
-            // If sorting by relevance, search term proximity takes precedence
             if (sortBy === 'relevance') {
                 filteredData.sort((a, b) => {
                     const titleA = a.title.toLowerCase();
@@ -305,8 +304,6 @@ export const Library: React.FC = () => {
     ? 'lg:h-[calc(100vh-6rem-5rem)]' 
     : 'lg:h-[calc(100vh-6rem)]';
   
-  const mobileContainerPadding = currentTrack ? 'pb-24' : 'pb-0';
-
   return (
     <div className="flex flex-col lg:flex-row lg:items-start relative">
       <SEO title={getPageTitle()} description={`Browse our library of ${tracks.length} high-quality royalty-free music tracks.`} />
@@ -508,7 +505,7 @@ export const Library: React.FC = () => {
             </div>
         </div>
 
-        {/* ACTIVE FILTERS HORIZONTAL BAR (DESKTOP ONLY / VISIBLE ABOVE RESULTS) */}
+        {/* ACTIVE FILTERS HORIZONTAL BAR */}
         {hasActiveFilters && (
             <div className={`mb-8 p-3 rounded-2xl border flex flex-wrap items-center gap-2 transition-all animate-in fade-in slide-in-from-top-2 duration-500 ${isDarkMode ? 'bg-zinc-900/50 border-zinc-800' : 'bg-sky-50/30 border-sky-100'}`}>
                 <div className="flex items-center gap-2 mr-2 px-3 py-1.5 border-r border-zinc-200 dark:border-zinc-800">
@@ -699,6 +696,13 @@ const CollapsibleFilterSection: React.FC<{
     );
 };
 
+const getEditsCount = (cuts: any) => {
+    if (!cuts) return 0;
+    if (Array.isArray(cuts)) return cuts.length;
+    if (typeof cuts === 'string') return cuts.split(',').filter(s => s.trim().length > 0).length;
+    return 0;
+};
+
 const TrackItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFindSimilar?: () => void }> = ({ track, playlist, onFindSimilar }) => {
     const { playTrack, currentTrack, isPlaying, isDarkMode, session, ownedTrackIds } = useStore();
     const { isPro } = useSubscription();
@@ -707,6 +711,7 @@ const TrackItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFindSim
     const isCurrent = currentTrack?.id === track.id;
     const active = isCurrent && isPlaying;
     const hasAccess = ownedTrackIds.has(track.id) || isPro;
+    const editsCount = getEditsCount(track.edit_cuts);
 
     const displayTitle = track.title.length > 22 ? track.title.substring(0, 22) + '...' : track.title;
 
@@ -734,7 +739,6 @@ const TrackItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFindSim
                 const link = document.createElement('a');
                 link.href = blobUrl;
                 
-                // Logica dinamica per estensione
                 const extension = track.wav_r2_key?.toLowerCase().endsWith('.zip') ? '.zip' : '.wav';
                 link.setAttribute('download', `${track.title}${extension}`);
                 
@@ -778,12 +782,11 @@ const TrackItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFindSim
                     <Link to={`/library?search=${encodeURIComponent(track.artist_name)}`} className={`text-[10px] md:text-xs font-medium hover:underline truncate ${isDarkMode ? 'text-zinc-400' : 'text-zinc-500'}`}>{track.artist_name}</Link>
                     {track.lyrics && (
                         <span title="Has Lyrics" className="shrink-0">
-                            {/* FIX: Corrected size prop syntax from size(10) to size={10} to resolve "Type 'boolean' is not assignable to type 'string | number'" error */}
                             <Mic2 size={10} className="text-sky-500" />
                         </span>
                     )}
                 </div>
-                <div className="mt-1">
+                <div className="mt-1 flex items-center gap-1.5 flex-wrap">
                     {Array.isArray(track.genre) ? (
                         <span className={`text-[9px] uppercase font-black px-1.5 py-0.5 rounded-sm inline-block ${isDarkMode ? 'bg-sky-900/60 text-sky-300' : 'bg-sky-100 text-sky-800'}`}>
                             {track.genre[0]}
@@ -793,6 +796,12 @@ const TrackItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFindSim
                             {track.genre}
                         </span>
                     ) : null}
+
+                    {editsCount > 0 && (
+                         <span className={`text-[9px] uppercase font-black px-1.5 py-0.5 rounded-sm inline-flex items-center gap-1 ${isDarkMode ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-800/50' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`} title="Additional edits available">
+                            <Scissors size={8} /> +{editsCount} EDITS
+                        </span>
+                    )}
                 </div>
             </div>
 
@@ -858,6 +867,7 @@ const TrackGridItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFin
     const isCurrent = currentTrack?.id === track.id;
     const active = isCurrent && isPlaying;
     const hasAccess = ownedTrackIds.has(track.id) || isPro;
+    const editsCount = getEditsCount(track.edit_cuts);
 
     const displayTitle = track.title.length > 22 ? track.title.substring(0, 22) + '...' : track.title;
 
@@ -885,7 +895,6 @@ const TrackGridItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFin
                 const link = document.createElement('a');
                 link.href = blobUrl;
                 
-                // Logica dinamica per estensione
                 const extension = track.wav_r2_key?.toLowerCase().endsWith('.zip') ? '.zip' : '.wav';
                 link.setAttribute('download', `${track.title}${extension}`);
                 
@@ -918,6 +927,15 @@ const TrackGridItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFin
                     alt={track.title} 
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                 />
+                
+                {/* Edits Badge (Grid View Overlay) */}
+                {editsCount > 0 && (
+                    <div className="absolute top-3 right-3 z-10">
+                        <span className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest backdrop-blur-md border shadow-lg ${isDarkMode ? 'bg-black/60 text-emerald-400 border-white/10' : 'bg-white/80 text-emerald-600 border-emerald-100'}`}>
+                            <Scissors size={10} /> +{editsCount} EDITS
+                        </span>
+                    </div>
+                )}
                 
                 <div className={`absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-3 transition-opacity duration-300 ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                     
