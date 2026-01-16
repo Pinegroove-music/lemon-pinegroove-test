@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../services/supabase';
 import { MusicTrack } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { Play, Pause, ShoppingCart, Filter, ChevronDown, ChevronRight, ArrowRight, X, Mic2, ChevronLeft, Sparkles, Check, Trash2, LayoutList, LayoutGrid, Download, Zap, Loader2 } from 'lucide-react';
+import { Play, Pause, ShoppingCart, Filter, ChevronDown, ChevronRight, ArrowRight, X, Mic2, ChevronLeft, Sparkles, Check, Trash2, LayoutList, LayoutGrid, Download, Zap, Loader2, RotateCcw, Blend, Megaphone, ArrowUpDown } from 'lucide-react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
@@ -19,6 +18,7 @@ export const Library: React.FC = () => {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [sortBy, setSortBy] = useState<'relevance' | 'newest'>('relevance');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 25; 
 
@@ -29,6 +29,8 @@ export const Library: React.FC = () => {
   const [selectedInstruments, setSelectedInstruments] = useState<string[]>([]);
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [bpmRange, setBpmRange] = useState<'slow' | 'medium' | 'fast' | null>(null);
+  const [loopOnly, setLoopOnly] = useState(false);
+  const [stingerOnly, setStingerOnly] = useState(false);
 
   const [availableInstruments, setAvailableInstruments] = useState<string[]>([]);
 
@@ -52,7 +54,7 @@ export const Library: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
     fetchTracks();
-  }, [selectedGenres, selectedMoods, selectedInstruments, selectedSeasons, bpmRange, searchTerm]);
+  }, [selectedGenres, selectedMoods, selectedInstruments, selectedSeasons, bpmRange, searchTerm, loopOnly, stingerOnly, sortBy]);
 
   const fetchTracks = async () => {
     setLoading(true);
@@ -63,10 +65,22 @@ export const Library: React.FC = () => {
         console.error("Error fetching tracks:", error);
         setTracks([]);
     } else if (data) {
-        const allTracks = data as MusicTrack[];
-        for (let i = allTracks.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [allTracks[i], allTracks[j]] = [allTracks[j], allTracks[i]];
+        let allTracks = data as MusicTrack[];
+        
+        // Sorting Logic
+        if (sortBy === 'relevance') {
+            // Random shuffle for relevance (current behavior)
+            for (let i = allTracks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allTracks[i], allTracks[j]] = [allTracks[j], allTracks[i]];
+            }
+        } else if (sortBy === 'newest') {
+            // Sort by year reverse (2026, 2025, 2024...)
+            allTracks.sort((a, b) => {
+                const yearA = a.year || 0;
+                const yearB = b.year || 0;
+                return yearB - yearA;
+            });
         }
 
         let filteredData = allTracks;
@@ -128,25 +142,28 @@ export const Library: React.FC = () => {
                 return terms.some(t => trackString.includes(t));
             });
 
-            filteredData.sort((a, b) => {
-                const titleA = a.title.toLowerCase();
-                const titleB = b.title.toLowerCase();
+            // If sorting by relevance, search term proximity takes precedence
+            if (sortBy === 'relevance') {
+                filteredData.sort((a, b) => {
+                    const titleA = a.title.toLowerCase();
+                    const titleB = b.title.toLowerCase();
 
-                if (titleA === fullTerm && titleB !== fullTerm) return -1;
-                if (titleB === fullTerm && titleA !== fullTerm) return 1;
+                    if (titleA === fullTerm && titleB !== fullTerm) return -1;
+                    if (titleB === fullTerm && titleA !== fullTerm) return 1;
 
-                const aStarts = titleA.startsWith(fullTerm);
-                const bStarts = titleB.startsWith(fullTerm);
-                if (aStarts && !bStarts) return -1;
-                if (!aStarts && bStarts) return 1;
+                    const aStarts = titleA.startsWith(fullTerm);
+                    const bStarts = titleB.startsWith(fullTerm);
+                    if (aStarts && !bStarts) return -1;
+                    if (!aStarts && bStarts) return 1;
 
-                const aContains = titleA.includes(fullTerm);
-                const bContains = titleB.includes(fullTerm);
-                if (aContains && !bContains) return -1;
-                if (!aContains && bContains) return 1;
+                    const aContains = titleA.includes(fullTerm);
+                    const bContains = titleB.includes(fullTerm);
+                    if (aContains && !bContains) return -1;
+                    if (!aContains && bContains) return 1;
 
-                return 0; 
-            });
+                    return 0; 
+                });
+            }
         }
 
         if (selectedGenres.length > 0) filteredData = filteredData.filter(track => checkFilterMatch(track.genre, selectedGenres));
@@ -160,6 +177,28 @@ export const Library: React.FC = () => {
                 if (bpmRange === 'medium') return track.bpm >= 71 && track.bpm <= 120;
                 if (bpmRange === 'fast') return track.bpm > 120;
                 return true;
+            });
+        }
+        
+        if (loopOnly) {
+            filteredData = filteredData.filter(track => {
+                const cuts = track.edit_cuts;
+                if (!cuts) return false;
+                if (Array.isArray(cuts)) {
+                    return cuts.some(c => String(c).toLowerCase().includes('loop'));
+                }
+                return String(cuts).toLowerCase().includes('loop');
+            });
+        }
+
+        if (stingerOnly) {
+            filteredData = filteredData.filter(track => {
+                const cuts = track.edit_cuts;
+                if (!cuts) return false;
+                if (Array.isArray(cuts)) {
+                    return cuts.some(c => String(c).toLowerCase().includes('stinger'));
+                }
+                return String(cuts).toLowerCase().includes('stinger');
             });
         }
 
@@ -181,6 +220,8 @@ export const Library: React.FC = () => {
       setSelectedSeasons([]);
       setSelectedInstruments([]);
       setBpmRange(null);
+      setLoopOnly(false);
+      setStingerOnly(false);
       setSearchParams({});
 
       let newGenres: string[] = [];
@@ -214,6 +255,8 @@ export const Library: React.FC = () => {
       setSelectedInstruments([]);
       setSelectedSeasons([]);
       setBpmRange(null);
+      setLoopOnly(false);
+      setStingerOnly(false);
       setSearchParams({}); 
   };
 
@@ -245,7 +288,7 @@ export const Library: React.FC = () => {
     }
   };
 
-  const hasActiveFilters = searchTerm || selectedGenres.length > 0 || selectedMoods.length > 0 || selectedInstruments.length > 0 || selectedSeasons.length > 0 || bpmRange;
+  const hasActiveFilters = searchTerm || selectedGenres.length > 0 || selectedMoods.length > 0 || selectedInstruments.length > 0 || selectedSeasons.length > 0 || bpmRange || loopOnly || stingerOnly;
 
   const getPageTitle = () => {
       if (searchTerm) return `"${searchTerm}" Search Results`;
@@ -253,6 +296,8 @@ export const Library: React.FC = () => {
       if (selectedMoods.length > 0) return `${selectedMoods.join(', ')} Royalty Free Music`;
       if (selectedInstruments.length > 0) return `${selectedInstruments.join(', ')} Royalty Free Music`;
       if (selectedSeasons.length > 0) return `${selectedSeasons.join(', ')} Royalty Free Music`;
+      if (loopOnly) return "Loopable Tracks";
+      if (stingerOnly) return "Tracks with Stingers";
       return "Music Library";
   };
 
@@ -267,7 +312,7 @@ export const Library: React.FC = () => {
       <SEO title={getPageTitle()} description={`Browse our library of ${tracks.length} high-quality royalty-free music tracks.`} />
       
       <button 
-        className="lg:hidden m-4 p-3 bg-sky-600 text-white rounded-lg flex items-center justify-center gap-2"
+        className="lg:hidden m-4 p-3 bg-sky-600 text-white rounded-lg flex items-center justify-center gap-2 shadow-lg"
         onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
       >
         <Filter size={20}/> Filters
@@ -275,15 +320,15 @@ export const Library: React.FC = () => {
 
       <div className={`
         lg:w-72 flex-shrink-0 border-r flex flex-col
-        ${mobileFiltersOpen ? `fixed inset-0 z-40 overflow-hidden ${mobileContainerPadding}` : 'hidden lg:flex'}
+        ${mobileFiltersOpen ? `fixed inset-0 z-[100] ${isDarkMode ? 'bg-zinc-950' : 'bg-white'}` : 'hidden lg:flex'}
         ${isDarkMode ? 'border-zinc-800 bg-zinc-900' : 'border-zinc-100 bg-white'}
         lg:sticky lg:top-0 ${sidebarHeightClass} transition-all duration-300
       `}>
         
         {mobileFiltersOpen && (
-            <div className={`flex items-center justify-between p-4 border-b ${isDarkMode ? 'border-zinc-800' : 'border-zinc-200'}`}>
+            <div className={`sticky top-0 z-20 flex items-center justify-between p-4 border-b backdrop-blur-md ${isDarkMode ? 'border-zinc-800 bg-zinc-950/80' : 'border-zinc-200 bg-white/80'}`}>
                 <h3 className="font-bold text-lg">Filters</h3>
-                <button onClick={() => setMobileFiltersOpen(false)}>
+                <button onClick={() => setMobileFiltersOpen(false)} className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                     <X size={24} />
                 </button>
             </div>
@@ -350,54 +395,73 @@ export const Library: React.FC = () => {
                 linkTo="/categories/seasonal"
                 isDark={isDarkMode}
             />
-        </div>
 
-        {hasActiveFilters && (
-            <div className="p-4 z-10">
-                <div className={`
-                    p-3 rounded-xl border animate-in slide-in-from-bottom-2 duration-300
-                    shadow-xl
-                    ${isDarkMode ? 'bg-zinc-800 border-zinc-700 shadow-black/50' : 'bg-white border-sky-100 shadow-sky-100'}
-                `}>
-                    <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-bold text-xs text-sky-600 dark:text-sky-400 uppercase tracking-wider flex items-center gap-1">
-                            <Sparkles size={12}/> ACTIVE FILTERS
-                        </h4>
+            <CollapsibleFilterSection 
+                title="Additional Edits" 
+                isDark={isDarkMode}
+            >
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between px-3 py-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                        <div className="flex items-center gap-2">
+                            <RotateCcw size={16} className="text-sky-500" />
+                            <span className="text-xs font-bold uppercase tracking-tight opacity-80">Loop included</span>
+                        </div>
                         <button 
-                            onClick={clearAllFilters}
-                            className="text-xs bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 px-2 py-1 rounded transition-colors flex items-center gap-1 font-bold"
+                            onClick={() => setLoopOnly(!loopOnly)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ring-offset-2 focus:ring-2 focus:ring-sky-500 ${loopOnly ? 'bg-sky-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                            aria-label="Filter loop versions"
                         >
-                            <Trash2 size={12} /> Clear All
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${loopOnly ? 'translate-x-6' : 'translate-x-1'}`} />
                         </button>
                     </div>
-                    
-                    <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto no-scrollbar">
-                        {searchTerm && (
-                            <ActiveFilterBadge label={`"${searchTerm}"`} onRemove={() => { setSearchTerm(''); setSearchParams({}); }} isDark={isDarkMode} />
-                        )}
-                        {bpmRange && (
-                            <ActiveFilterBadge label={`BPM: ${bpmRange}`} onRemove={() => setBpmRange(null)} isDark={isDarkMode} />
-                        )}
-                        {selectedGenres.map(g => (
-                            <ActiveFilterBadge key={g} label={g} onRemove={() => toggleFilter(selectedGenres, setSelectedGenres, g)} isDark={isDarkMode} />
-                        ))}
-                        {selectedMoods.map(m => (
-                            <ActiveFilterBadge key={m} label={m} onRemove={() => toggleFilter(selectedMoods, setSelectedMoods, m)} isDark={isDarkMode} />
-                        ))}
-                        {selectedInstruments.map(i => (
-                            <ActiveFilterBadge key={i} label={i} onRemove={() => toggleFilter(selectedInstruments, setSelectedInstruments, i)} isDark={isDarkMode} />
-                        ))}
-                        {selectedSeasons.map(s => (
-                            <ActiveFilterBadge key={s} label={s} onRemove={() => toggleFilter(selectedSeasons, setSelectedSeasons, s)} isDark={isDarkMode} />
-                        ))}
+
+                    <div className="flex items-center justify-between px-3 py-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
+                        <div className="flex items-center gap-2">
+                            <Megaphone size={16} className="text-sky-500" />
+                            <span className="text-xs font-bold uppercase tracking-tight opacity-80">Stinger included</span>
+                        </div>
+                        <button 
+                            onClick={() => setStingerOnly(!stingerOnly)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ring-offset-2 focus:ring-2 focus:ring-sky-500 ${stingerOnly ? 'bg-sky-500' : 'bg-zinc-300 dark:bg-zinc-700'}`}
+                            aria-label="Filter stinger versions"
+                        >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${stingerOnly ? 'translate-x-6' : 'translate-x-1'}`} />
+                        </button>
                     </div>
+
+                    <p className="text-[10px] opacity-40 px-1 font-medium leading-tight">
+                        Show tracks that include seamless loop or branding stinger versions.
+                    </p>
                 </div>
+            </CollapsibleFilterSection>
+        </div>
+
+        {mobileFiltersOpen && (
+            <div className={`sticky bottom-0 p-4 border-t z-20 ${isDarkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-200'}`}>
+                <div className="mb-4">
+                     {hasActiveFilters && (
+                        <div className="flex flex-wrap gap-2 mb-4 max-h-24 overflow-y-auto no-scrollbar">
+                            {searchTerm && <ActiveFilterBadge label={`"${searchTerm}"`} onRemove={() => { setSearchTerm(''); setSearchParams({}); }} isDark={isDarkMode} />}
+                            {bpmRange && <ActiveFilterBadge label={`BPM: ${bpmRange}`} onRemove={() => setBpmRange(null)} isDark={isDarkMode} />}
+                            {loopOnly && <ActiveFilterBadge label="Includes Loop" onRemove={() => setLoopOnly(false)} isDark={isDarkMode} />}
+                            {stingerOnly && <ActiveFilterBadge label="Includes Stinger" onRemove={() => setStingerOnly(false)} isDark={isDarkMode} />}
+                            {selectedGenres.map(g => <ActiveFilterBadge key={g} label={g} onRemove={() => toggleFilter(selectedGenres, setSelectedGenres, g)} isDark={isDarkMode} />)}
+                            {selectedMoods.map(m => <ActiveFilterBadge key={m} label={m} onRemove={() => toggleFilter(selectedMoods, setSelectedMoods, m)} isDark={isDarkMode} />)}
+                        </div>
+                     )}
+                </div>
+                <button 
+                    onClick={() => setMobileFiltersOpen(false)}
+                    className="w-full bg-sky-600 text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-transform"
+                >
+                    Show {tracks.length} Results
+                </button>
             </div>
         )}
       </div>
 
       <div className="flex-1 p-4 lg:p-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
             <div className="flex items-center gap-3">
                  <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-zinc-900'}`}>Library</h2>
                  {tracks.length > 0 && (
@@ -407,23 +471,84 @@ export const Library: React.FC = () => {
                  )}
             </div>
 
-            <div className={`flex items-center p-1 rounded-lg border ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200'}`}>
-                <button 
-                    onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' : 'opacity-50 hover:opacity-100'}`}
-                    title="List View"
-                >
-                    <LayoutList size={18} />
-                </button>
-                <button 
-                    onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' : 'opacity-50 hover:opacity-100'}`}
-                    title="Grid View"
-                >
-                    <LayoutGrid size={18} />
-                </button>
+            <div className="flex items-center gap-3">
+                {/* SORTING DROPDOWN */}
+                <div className={`flex items-center pl-3 pr-1 py-1 rounded-lg border transition-all ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200 shadow-sm'}`}>
+                    <div className="flex items-center gap-2 mr-2 opacity-40">
+                        <ArrowUpDown size={14} />
+                        <span className="text-[10px] font-black uppercase tracking-widest hidden lg:inline">Sort by:</span>
+                    </div>
+                    <select 
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value as any)}
+                        className={`bg-transparent text-xs font-bold outline-none cursor-pointer pr-2 py-1 ${isDarkMode ? 'text-zinc-300' : 'text-zinc-600'}`}
+                    >
+                        <option value="relevance" className={isDarkMode ? 'bg-zinc-900 text-white' : 'bg-white text-black'}>Relevance</option>
+                        <option value="newest" className={isDarkMode ? 'bg-zinc-900 text-white' : 'bg-white text-black'}>Newest</option>
+                    </select>
+                </div>
+
+                {/* VIEW MODE TOGGLE */}
+                <div className={`flex items-center p-1 rounded-lg border ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-200 shadow-sm'}`}>
+                    <button 
+                        onClick={() => setViewMode('list')}
+                        className={`p-2 rounded-md transition-all ${viewMode === 'list' ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' : 'opacity-50 hover:opacity-100'}`}
+                        title="List View"
+                    >
+                        <LayoutList size={18} />
+                    </button>
+                    <button 
+                        onClick={() => setViewMode('grid')}
+                        className={`p-2 rounded-md transition-all ${viewMode === 'grid' ? 'bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400' : 'opacity-50 hover:opacity-100'}`}
+                        title="Grid View"
+                    >
+                        <LayoutGrid size={18} />
+                    </button>
+                </div>
             </div>
         </div>
+
+        {/* ACTIVE FILTERS HORIZONTAL BAR (DESKTOP ONLY / VISIBLE ABOVE RESULTS) */}
+        {hasActiveFilters && (
+            <div className={`mb-8 p-3 rounded-2xl border flex flex-wrap items-center gap-2 transition-all animate-in fade-in slide-in-from-top-2 duration-500 ${isDarkMode ? 'bg-zinc-900/50 border-zinc-800' : 'bg-sky-50/30 border-sky-100'}`}>
+                <div className="flex items-center gap-2 mr-2 px-3 py-1.5 border-r border-zinc-200 dark:border-zinc-800">
+                    <Filter size={14} className="text-sky-500" />
+                    <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Active Filters:</span>
+                </div>
+                
+                {searchTerm && (
+                    <ActiveFilterBadge label={`"${searchTerm}"`} onRemove={() => { setSearchTerm(''); setSearchParams({}); }} isDark={isDarkMode} />
+                )}
+                {bpmRange && (
+                    <ActiveFilterBadge label={`BPM: ${bpmRange}`} onRemove={() => setBpmRange(null)} isDark={isDarkMode} />
+                )}
+                {loopOnly && (
+                    <ActiveFilterBadge label="Includes Loop" onRemove={() => setLoopOnly(false)} isDark={isDarkMode} />
+                )}
+                {stingerOnly && (
+                    <ActiveFilterBadge label="Includes Stinger" onRemove={() => setStingerOnly(false)} isDark={isDarkMode} />
+                )}
+                {selectedGenres.map(g => (
+                    <ActiveFilterBadge key={g} label={g} onRemove={() => toggleFilter(selectedGenres, setSelectedGenres, g)} isDark={isDarkMode} />
+                ))}
+                {selectedMoods.map(m => (
+                    <ActiveFilterBadge key={m} label={m} onRemove={() => toggleFilter(selectedMoods, setSelectedMoods, m)} isDark={isDarkMode} />
+                ))}
+                {selectedInstruments.map(i => (
+                    <ActiveFilterBadge key={i} label={i} onRemove={() => toggleFilter(selectedInstruments, setSelectedInstruments, i)} isDark={isDarkMode} />
+                ))}
+                {selectedSeasons.map(s => (
+                    <ActiveFilterBadge key={s} label={s} onRemove={() => toggleFilter(selectedSeasons, setSelectedSeasons, s)} isDark={isDarkMode} />
+                ))}
+
+                <button 
+                    onClick={clearAllFilters}
+                    className="ml-auto text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-400 px-4 py-2 rounded-xl transition-colors flex items-center gap-2 active:scale-95"
+                >
+                    <Trash2 size={12} /> Clear All
+                </button>
+            </div>
+        )}
         
         {loading ? (
           <div className="text-center py-20 opacity-50">Loading tracks...</div>
@@ -653,6 +778,7 @@ const TrackItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFindSim
                     <Link to={`/library?search=${encodeURIComponent(track.artist_name)}`} className={`text-[10px] md:text-xs font-medium hover:underline truncate ${isDarkMode ? 'text-zinc-400' : 'text-zinc-500'}`}>{track.artist_name}</Link>
                     {track.lyrics && (
                         <span title="Has Lyrics" className="shrink-0">
+                            {/* FIX: Corrected size prop syntax from size(10) to size={10} to resolve "Type 'boolean' is not assignable to type 'string | number'" error */}
                             <Mic2 size={10} className="text-sky-500" />
                         </span>
                     )}
@@ -695,7 +821,7 @@ const TrackItem: React.FC<{ track: MusicTrack; playlist: MusicTrack[]; onFindSim
                     className="p-1.5 md:p-2 rounded-full hover:bg-sky-100 dark:hover:bg-zinc-700 text-sky-500 transition-colors"
                     title="Find similar tracks"
                 >
-                    <Sparkles size={16} />
+                    <Blend size={16} />
                 </button>
 
                 <div className="w-auto flex items-center justify-center">
