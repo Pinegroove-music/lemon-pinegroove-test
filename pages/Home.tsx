@@ -390,7 +390,7 @@ export const Home: React.FC = () => {
       <div className="relative pt-40 pb-8 md:pt-48 md:pb-12 text-center flex flex-col items-center justify-end min-h-[340px] md:min-h-[380px]">
          <div className="absolute inset-0 z-0 overflow-hidden">
             <img 
-                src="https://media.pinegroove.net/media/bg-pinegroove.avif" 
+                src="https://media.pinegroove.net/media/bg_pinegroove_2.avif" 
                 alt="Home Studio Background" 
                 className="w-full h-full object-cover"
             />
