@@ -386,15 +386,15 @@ export const Home: React.FC = () => {
     <div className="space-y-16 pb-20">
       <SEO title="Royalty Free Music for Video" />
       
-      {/* Hero Section - Compact height & Content shifted low */}
-      <div className="relative pt-40 pb-8 md:pt-48 md:pb-12 text-center flex flex-col items-center justify-end min-h-[340px] md:min-h-[380px]">
+       {/* Hero Section - Compact height & Content shifted low */}
+      <div className="relative pt-40 pb-8 md:pt-48 md:pb-12 text-center flex flex-col items-center justify-end min-h-[390px] md:min-h-[460px]">
          <div className="absolute inset-0 z-0 overflow-hidden">
             <img 
-                src="https://media.pinegroove.net/media/bg-pinegroove.avif" 
-                alt="Home Studio Background" 
+                src="https://media.pinegroove.net/media/bg_pinegroove10.avif" 
+                alt="Royalty Free Music for Video" 
                 className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/60 transition-colors duration-500"></div>
+            <div className="absolute inset-0 bg-black/40 transition-colors duration-500"></div>
          </div>
 
          <div className="relative w-full max-w-[1920px] mx-auto px-6 text-white mb-6 md:mb-8">
