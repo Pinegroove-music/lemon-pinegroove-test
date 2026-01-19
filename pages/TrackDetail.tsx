@@ -299,21 +299,32 @@ export const TrackDetail: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 w-full md:w-fit flex-wrap">
-                    <button 
-                        onClick={handleDownloadMain}
-                        disabled={downloadingWav}
-                        className={`flex-1 md:flex-none px-10 py-4 rounded-full font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-3 active:scale-95 ${hasFullAccess ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}`}
-                    >
-                        {downloadingWav ? <Loader2 className="animate-spin" /> : <Download size={20} />}
-                        {hasFullAccess ? `Download ${track.wav_r2_key?.toLowerCase().endsWith('.zip') ? 'ZIP' : 'WAV'}` : 'Download Preview (MP3)'}
-                    </button>
-                    
-                    <div className="flex items-center gap-3">
-                        <div className={`p-1.5 rounded-full border shadow-lg transition-transform hover:scale-110 active:scale-90 ${isDarkMode ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-zinc-200'}`}>
+                <div className="flex items-center gap-4 w-full md:w-fit">
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <button 
+                            onClick={handleDownloadMain}
+                            disabled={downloadingWav}
+                            className={`
+                                flex items-center justify-center gap-3 font-bold transition-all shadow-lg active:scale-95
+                                rounded-full
+                                h-14 md:h-auto
+                                flex-1 md:flex-none
+                                p-3 md:px-10 md:py-4
+                                ${hasFullAccess ? 'bg-emerald-600 hover:bg-emerald-500 text-white' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}
+                            `}
+                            title={hasFullAccess ? "Download Full Version" : "Download Preview"}
+                        >
+                            {downloadingWav ? <Loader2 className="animate-spin" size={24} /> : <Download size={28} className="md:w-5 md:h-5" />}
+                            <span className="hidden md:inline text-lg">
+                                {hasFullAccess ? `Download ${track.wav_r2_key?.toLowerCase().endsWith('.zip') ? 'ZIP' : 'WAV'}` : 'Download Preview'}
+                            </span>
+                        </button>
+                        
+                        <div className={`p-1.5 rounded-full border shadow-lg transition-transform hover:scale-110 active:scale-90 flex-shrink-0 ${isDarkMode ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-zinc-200'}`}>
                             <FavoriteButton trackId={track.id} size={28} />
                         </div>
-                        <div className={`p-1.5 rounded-full border shadow-lg transition-transform hover:scale-110 active:scale-90 ${isDarkMode ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-zinc-200'}`}>
+
+                        <div className={`p-1.5 rounded-full border shadow-lg transition-transform hover:scale-110 active:scale-90 flex-shrink-0 ${isDarkMode ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-zinc-200'}`}>
                             <ShareButton 
                                 title={track.title} 
                                 text={`Check out this track by ${track.artist_name} on Pinegroove!`}
