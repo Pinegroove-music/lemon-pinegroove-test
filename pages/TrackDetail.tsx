@@ -10,6 +10,7 @@ import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
 import { getIdFromSlug, createSlug } from '../utils/slugUtils';
 import { FavoriteButton } from '../components/FavoriteButton';
+import { ShareButton } from '../components/ShareButton';
 
 type LicenseOption = 'standard' | 'extended' | 'pro';
 
@@ -290,7 +291,7 @@ export const TrackDetail: React.FC = () => {
                 </h2>
 
                 <div className={`h-32 w-full rounded-xl mb-6 px-6 flex items-center gap-6 shadow-inner border transition-colors duration-300 ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}>
-                    <button onClick={() => playTrack(track, [track, ...recommendations])} className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition hover:scale-105 shadow-md ${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
+                    <button onClick={() => playTrack(track, [track, ...recommendations])} className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center transition hover:scale-105 shadow-sm ${isDarkMode ? 'bg-white text-black' : 'bg-black text-white'}`}>
                         {active ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1"/>}
                     </button>
                     <div className="flex-1 h-full flex items-center">
@@ -298,7 +299,7 @@ export const TrackDetail: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 w-full md:w-fit">
+                <div className="flex items-center gap-4 w-full md:w-fit flex-wrap">
                     <button 
                         onClick={handleDownloadMain}
                         disabled={downloadingWav}
@@ -308,8 +309,18 @@ export const TrackDetail: React.FC = () => {
                         {hasFullAccess ? `Download ${track.wav_r2_key?.toLowerCase().endsWith('.zip') ? 'ZIP' : 'WAV'}` : 'Download Preview (MP3)'}
                     </button>
                     
-                    <div className={`p-1.5 rounded-full border shadow-lg transition-transform hover:scale-110 active:scale-90 ${isDarkMode ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-zinc-200'}`}>
-                        <FavoriteButton trackId={track.id} size={32} />
+                    <div className="flex items-center gap-3">
+                        <div className={`p-1.5 rounded-full border shadow-lg transition-transform hover:scale-110 active:scale-90 ${isDarkMode ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-zinc-200'}`}>
+                            <FavoriteButton trackId={track.id} size={28} />
+                        </div>
+                        <div className={`p-1.5 rounded-full border shadow-lg transition-transform hover:scale-110 active:scale-90 ${isDarkMode ? 'bg-zinc-800 border-zinc-700' : 'bg-white border-zinc-200'}`}>
+                            <ShareButton 
+                                title={track.title} 
+                                text={`Check out this track by ${track.artist_name} on Pinegroove!`}
+                                url={`/track/${slug}`}
+                                size={28}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -369,7 +380,7 @@ export const TrackDetail: React.FC = () => {
                         <DetailRow label="Released" value={track.year} icon={<Calendar size={16}/>} />
                         <DetailRow label="ISRC" value={track.isrc} icon={<FileText size={16}/>} />
                         <DetailRow label="ISWC" value={track.iswc} icon={<FileText size={16}/>} />
-                        <DetailRow label="Sample Rate" value="16-Bit, 44.1 kHz" icon={<AudioWaveform size={16}/>} />
+                        <DetailRow label="Sample Rate" value="16-Bit Stereo, 44.1 kHz" icon={<AudioWaveform size={16}/>} />
 
                         {hasCredits && (
                             <div className="pt-4 mt-2 border-t border-dashed border-zinc-300 dark:border-zinc-700">

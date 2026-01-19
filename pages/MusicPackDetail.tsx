@@ -1,13 +1,15 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import { Album, MusicTrack, Coupon, PricingItem } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { ShoppingCart, Disc, Play, Pause, Check, ArrowLeft, AlertTriangle, Sparkles, ArrowRight, CheckCircle2, Zap, Library, Download, Loader2, Info, Ticket, Copy, Scissors } from 'lucide-react';
+import { ShoppingCart, Disc, Play, Pause, Check, ArrowLeft, AlertTriangle, Sparkles, ArrowRight, CheckCircle2, Zap, Library, Download, Loader2, Info, Ticket, Copy, Scissors, Share2 } from 'lucide-react';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
 import { getIdFromSlug, createSlug } from '../utils/slugUtils';
+import { ShareButton } from '../components/ShareButton';
 
 type LicenseOption = 'standard' | 'extended' | 'pro';
 
@@ -228,9 +230,17 @@ export const MusicPackDetail: React.FC = () => {
         }}
       />
 
-      <Link to="/music-packs" className="inline-flex items-center gap-2 opacity-60 hover:opacity-100 mb-8 transition-opacity">
-        <ArrowLeft size={16} /> Back to Music Packs
-      </Link>
+      <div className="flex items-center justify-between mb-8">
+        <Link to="/music-packs" className="inline-flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
+            <ArrowLeft size={16} /> Back to Music Packs
+        </Link>
+        <ShareButton 
+            title={album.title}
+            text={`Check out this music pack "${album.title}" on Pinegroove!`}
+            url={`/music-packs/${slug}`}
+            size={20}
+        />
+      </div>
 
       <div className="flex flex-col md:flex-row gap-8 lg:gap-12 mb-16 items-start">
          <div 
