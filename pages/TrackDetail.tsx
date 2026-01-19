@@ -2,10 +2,10 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
-import { MusicTrack, Album, Coupon, PricingItem } from '../types';
+import { MusicTrack, Album, Coupon, PricingItem, CartItem } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { Play, Pause, Clock, Music2, Calendar, FileText, Package, ArrowRight, Sparkles, ChevronDown, ChevronUp, Mic2, Download, FileBadge, Zap, CheckCircle2, Info, Loader2, ShoppingCart, Heart, Ticket, Copy, Check, Scissors, ListMusic, Megaphone, RotateCcw, Radio, X, AudioWaveform, Blend } from 'lucide-react';
+import { Play, Pause, Clock, Music2, Calendar, FileText, Package, ArrowRight, Sparkles, ChevronDown, ChevronUp, Mic2, Download, FileBadge, Zap, CheckCircle2, Info, Loader2, ShoppingCart, Heart, Ticket, Copy, Check, Scissors, ListMusic, Megaphone, RotateCcw, Radio, X, AudioWaveform, Blend, Plus } from 'lucide-react';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
 import { getIdFromSlug, createSlug } from '../utils/slugUtils';
@@ -35,16 +35,16 @@ export const TrackDetail: React.FC = () => {
   const [relatedAlbum, setRelatedAlbum] = useState<Album | null>(null);
   const [recommendations, setRecommendations] = useState<MusicTrack[]>([]);
   const [pricingData, setPricingData] = useState<PricingItem[]>([]);
-  const { playTrack, currentTrack, isPlaying, isDarkMode, session, purchasedTracks, ownedTrackIds } = useStore();
+  const { playTrack, currentTrack, isPlaying, isDarkMode, session, purchasedTracks, ownedTrackIds, addToCart } = useStore();
   const { isPro, openSubscriptionCheckout } = useSubscription();
   const [selectedLicense, setSelectedLicense] = useState<LicenseOption>('standard');
   const [downloadingWav, setDownloadingWav] = useState(false);
+  const [isAdded, setIsAdded] = useState(false);
   
   const [trackCoupon, setTrackCoupon] = useState<Coupon | null>(null);
   const [proCoupon, setProCoupon] = useState<Coupon | null>(null);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   
-  // New: Lyrics Modal State
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   
   const navigate = useNavigate();
@@ -130,6 +130,11 @@ export const TrackDetail: React.FC = () => {
     return `${item.currency} ${item.price}${type === 'full_catalog' ? '/year' : ''}`;
   };
 
+  const getNumericPrice = (type: string, defaultPrice: number): number => {
+    const item = pricingData.find(p => p.product_type === type);
+    return item ? item.price : defaultPrice;
+  };
+
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
@@ -184,6 +189,37 @@ export const TrackDetail: React.FC = () => {
   };
 
   const handleAddToCart = () => {
+    if (!track) return;
+    if (selectedLicense === 'pro') {
+        openSubscriptionCheckout();
+        return;
+    }
+
+    const variantId = selectedLicense === 'standard' ? track.variant_id_standard : track.variant_id_extended;
+    const priceType = selectedLicense === 'standard' ? 'single_track_standard' : 'single_track_extended';
+    const defaultPrice = selectedLicense === 'standard' ? 9.99 : 39.99;
+
+    if (!variantId) {
+        alert("This license variant is currently unavailable.");
+        return;
+    }
+
+    const item: CartItem = {
+      id: track.id,
+      type: 'track',
+      title: track.title,
+      cover_url: track.cover_url,
+      price: getNumericPrice(priceType, defaultPrice),
+      licenseType: selectedLicense as 'standard' | 'extended',
+      variantId
+    };
+
+    addToCart(item);
+    setIsAdded(true);
+    setTimeout(() => setIsAdded(false), 2000);
+  };
+
+  const handleBuyNow = () => {
     if (!track) return;
     if (!session?.user?.id) {
         navigate('/auth');
@@ -270,7 +306,6 @@ export const TrackDetail: React.FC = () => {
                     <span className="bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-300 px-2 py-1 rounded">{(Array.isArray(track.genre) ? track.genre[0] : track.genre)}</span>
                     {track.bpm && <span className="flex items-center gap-1"><Music2 size={14}/> {track.bpm} BPM</span>}
                     
-                    {/* Badge Edit Aggiuntivi */}
                     {editCuts.length > 0 && (
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-widest animate-in fade-in slide-in-from-left-2 duration-500 ${isDarkMode ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-800/50' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'}`}>
                             <Scissors size={12} /> +{editCuts.length} EDITS INCLUDED
@@ -345,7 +380,6 @@ export const TrackDetail: React.FC = () => {
                         {formatDescription(track.description)}
                     </div>
                     
-                    {/* View Lyrics Button */}
                     {track.lyrics && (
                       <div className="mt-8">
                         <button 
@@ -538,13 +572,23 @@ export const TrackDetail: React.FC = () => {
                     />
                 </div>
 
-                <button 
-                    onClick={handleAddToCart}
-                    className="w-full bg-sky-500 hover:bg-sky-400 text-white font-black py-5 rounded-2xl shadow-xl shadow-sky-500/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-xl mt-8"
-                >
-                    <ShoppingCart size={24} />
-                    {selectedLicense === 'pro' ? 'Subscribe Now' : 'Add To Cart'}
-                </button>
+                <div className="flex flex-col gap-3 mt-8">
+                  <button 
+                      onClick={handleAddToCart}
+                      className={`w-full py-5 rounded-2xl font-black shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-xl ${isDarkMode ? 'bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white' : 'bg-white border-2 border-sky-500 text-sky-600 hover:bg-sky-50'}`}
+                  >
+                      {isAdded ? <Check size={24} className="text-emerald-500 animate-in zoom-in" /> : <Plus size={24} />}
+                      {selectedLicense === 'pro' ? 'Start Subscription' : isAdded ? 'Added to Cart' : 'Add To Cart'}
+                  </button>
+                  
+                  <button 
+                      onClick={handleBuyNow}
+                      className="w-full bg-sky-500 hover:bg-sky-400 text-white font-black py-5 rounded-2xl shadow-xl shadow-sky-500/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-xl"
+                  >
+                      <ShoppingCart size={24} />
+                      {selectedLicense === 'pro' ? 'Subscribe Now' : 'Buy Now'}
+                  </button>
+                </div>
                 
                 <div className="space-y-4 mt-8">
                   <p className="text-center text-xs opacity-50 font-medium">
@@ -585,7 +629,6 @@ export const TrackDetail: React.FC = () => {
             </div>
         )}
 
-        {/* Lyrics Modal */}
         {isLyricsOpen && track.lyrics && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 md:p-6">
             <div 
@@ -656,7 +699,6 @@ interface LicenseCardProps {
 }
 
 const LicenseCard: React.FC<LicenseCardProps> = ({ id, title, price, selected, locked, onClick, features, infoLink, highlight, isDarkMode, coupon, onCopyCoupon, copiedCode }) => {
-    // Usiamo costanti di colore fisse basate sullo stato per prevenire sovrascritture del browser
     const titleColor = selected 
         ? 'text-sky-500' 
         : (isDarkMode ? 'text-white' : 'text-zinc-900');

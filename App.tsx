@@ -7,6 +7,7 @@ import { Player } from './components/Player';
 import { Footer } from './components/Footer';
 import { CookieConsent } from './components/CookieConsent';
 import { Auth } from './components/Auth';
+import { Cart } from './components/Cart';
 import { Home } from './pages/Home';
 import { Library } from './pages/Library';
 import { TrackDetail } from './pages/TrackDetail';
@@ -26,15 +27,16 @@ import { UserLicenseAgreement } from './pages/UserLicenseAgreement';
 import { Privacy } from './pages/Privacy';
 import { ResetPassword } from './pages/ResetPassword';
 import { useStore } from './store/useStore';
-import { Menu, Search, Music, User, X, Heart, LogOut } from 'lucide-react';
+import { Menu, Search, Music, User, X, Heart, LogOut, ShoppingCart } from 'lucide-react';
 import { supabase } from './services/supabase';
 import { createSlug } from './utils/slugUtils';
 import { SEO } from './components/SEO';
 import { AnnouncementBar } from './components/AnnouncementBar';
 
 const Layout: React.FC = () => {
-  const { isDarkMode, session, fetchPurchases, fetchProfile } = useStore();
+  const { isDarkMode, session, fetchPurchases, fetchProfile, cart } = useStore();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
   const [isScrolled, setIsScrolled] = useState(false);
   
@@ -52,7 +54,6 @@ const Layout: React.FC = () => {
   const isResetPasswordPage = location.pathname === '/reset-password';
   const hideSidebar = isAuthPage || isResetPasswordPage;
 
-  // Sincronizzazione color-scheme per bloccare interferenze browser
   useEffect(() => {
     const root = document.documentElement;
     if (isDarkMode) {
@@ -64,7 +65,6 @@ const Layout: React.FC = () => {
     }
   }, [isDarkMode]);
 
-  // Sincronizza i preferiti salvati nel localStorage quando l'utente si logga
   const syncPendingFavorites = async (userId: string) => {
     const pending = JSON.parse(localStorage.getItem('pinegroove_pending_favorites') || '[]');
     if (pending.length === 0) return;
@@ -110,6 +110,7 @@ const Layout: React.FC = () => {
               if (event.event === 'Checkout.Success') {
                 fetchPurchases();
                 fetchProfile();
+                useStore.getState().clearCart();
               }
             }
           });
@@ -360,6 +361,20 @@ const Layout: React.FC = () => {
                             flex items-center gap-3 ml-auto transition-all duration-500 pointer-events-auto
                             ${isHeroPage && !isScrolled ? 'text-white' : ''}
                         `}>
+                            {/* Global Cart Button */}
+                            <button 
+                                onClick={() => setCartOpen(true)}
+                                className={`relative p-2 rounded-full transition-all ${isDarkMode ? 'hover:bg-zinc-900' : 'hover:bg-gray-100'} ${isHeroPage && !isScrolled ? 'hover:bg-white/10' : ''}`}
+                                title="Open Cart"
+                            >
+                                <ShoppingCart size={22} />
+                                {cart.length > 0 && (
+                                    <span className="absolute -top-1 -right-1 bg-sky-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-lg animate-in zoom-in">
+                                        {cart.length}
+                                    </span>
+                                )}
+                            </button>
+
                             {!session ? (
                                 <div className="flex items-center gap-4">
                                     <Link to="/auth?view=sign_in" className={`text-sm font-bold opacity-70 hover:opacity-100 transition-opacity ${isHeroPage && !isScrolled ? 'text-white' : ''}`}>
@@ -427,6 +442,7 @@ const Layout: React.FC = () => {
           {showFooter && <Footer />}
         </main>
 
+        <Cart isOpen={cartOpen} onClose={() => setCartOpen(false)} />
         <CookieConsent />
         {!hideSidebar && <Player />}
         

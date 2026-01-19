@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { MusicTrack } from '../types';
+import { MusicTrack, CartItem } from '../types';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 
@@ -17,10 +17,16 @@ interface AppState {
   isSubscriber: boolean;
   renewsAt: string | null;
   setSession: (session: Session | null) => void;
-  purchasedTracks: PurchasedItem[]; // Rows from purchases table
-  ownedTrackIds: Set<number>; // Flat set of all owned track IDs (direct + via albums)
+  purchasedTracks: PurchasedItem[]; 
+  ownedTrackIds: Set<number>; 
   fetchPurchases: () => Promise<void>;
   fetchProfile: () => Promise<void>;
+
+  // Cart State
+  cart: CartItem[];
+  addToCart: (item: CartItem) => void;
+  removeFromCart: (id: number, licenseType: string) => void;
+  clearCart: () => void;
 
   // Audio Player State
   currentTrack: MusicTrack | null;
@@ -42,6 +48,9 @@ interface AppState {
   isDarkMode: boolean;
   toggleTheme: () => void;
 }
+
+// Carica il carrello iniziale dal localStorage
+const savedCart = JSON.parse(localStorage.getItem('pinegroove_cart') || '[]');
 
 export const useStore = create<AppState>((set, get) => ({
   session: null,
@@ -129,6 +138,28 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
+  // Cart Management
+  cart: savedCart,
+  addToCart: (item) => {
+    const currentCart = get().cart;
+    // Evitiamo duplicati esatti (stesso ID e stessa licenza)
+    const exists = currentCart.find(i => i.id === item.id && i.licenseType === item.licenseType && i.type === item.type);
+    if (exists) return;
+
+    const newCart = [...currentCart, item];
+    set({ cart: newCart });
+    localStorage.setItem('pinegroove_cart', JSON.stringify(newCart));
+  },
+  removeFromCart: (id, licenseType) => {
+    const newCart = get().cart.filter(item => !(item.id === id && item.licenseType === licenseType));
+    set({ cart: newCart });
+    localStorage.setItem('pinegroove_cart', JSON.stringify(newCart));
+  },
+  clearCart: () => {
+    set({ cart: [] });
+    localStorage.removeItem('pinegroove_cart');
+  },
+
   currentTrack: null,
   playlist: [],
   isPlaying: false,
@@ -140,7 +171,6 @@ export const useStore = create<AppState>((set, get) => ({
     if (state.currentTrack?.id === track.id) {
       return { isPlaying: !state.isPlaying };
     }
-    // Se viene passata una nuova lista di brani, la impostiamo come playlist corrente
     const newPlaylist = tracks && tracks.length > 0 ? tracks : state.playlist;
     return { 
       currentTrack: track, 
