@@ -5,6 +5,9 @@ import { ShoppingCart, X, Trash2, ArrowRight, Loader2, Info, AlertCircle } from 
 import { supabase } from '../services/supabase';
 import { useNavigate } from 'react-router-dom';
 
+// Sostituisci questo ID con l'ID reale del tuo prodotto standard/base su Lemon Squeezy
+const DEFAULT_VARIANT_ID = '433299'; 
+
 export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cart, removeFromCart, clearCart, isDarkMode, session } = useStore();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -25,38 +28,48 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
 
     setIsCheckingOut(true);
     try {
-      // Separiamo gli ID delle tracce da quelli degli album come richiesto dalla Edge Function
-      const trackIds = cart
+      // 1. Separiamo gli ID delle tracce dai Music Pack (album)
+      const trackIdsArray = cart
         .filter(item => item.type === 'track')
-        .map(item => item.id)
-        .join(',');
+        .map(item => item.id);
       
-      const albumIds = cart
+      const albumIdsArray = cart
         .filter(item => item.type === 'album')
-        .map(item => item.id)
-        .join(',');
+        .map(item => item.id);
 
-      // La licenza viene determinata dal primo elemento (o si assume uniforme per il checkout di gruppo)
-      const licenseType = cart.length > 0 ? cart[0].licenseType : 'standard';
+      // Formattiamo come stringhe separate da virgola (o stringa vuota se assenti)
+      const track_ids = trackIdsArray.length > 0 ? trackIdsArray.join(',') : "";
+      const album_ids = albumIdsArray.length > 0 ? albumIdsArray.join(',') : "";
 
-      const { data, error: invokeError } = await supabase.functions.invoke('ls-purchase-handler', {
+      // La licenza viene determinata dal primo elemento nel carrello
+      const license_type = cart.length > 0 ? cart[0].licenseType : 'standard';
+
+      // 2. Invochiamo la Edge Function 'create-checkout' per generare il link LS via API
+      // Nota: Questa funzione deve gestire la comunicazione con https://api.lemonsqueezy.com/v1/checkouts
+      const { data, error: invokeError } = await supabase.functions.invoke('create-checkout', {
         body: {
-          track_ids: trackIds, // Stringa di ID separati da virgola
-          album_ids: albumIds, // Stringa di ID separati da virgola
-          user_id: session.user.id,
-          license_type: licenseType,
-          quantity: cart.length, // Somma totale di tutti gli elementi
-          is_cart: true
+          variant_id: DEFAULT_VARIANT_ID, // ID prodotto standard
+          quantity: cart.length,           // Numero totale di oggetti
+          custom_data: {
+            user_id: session.user.id,
+            track_ids,
+            album_ids,
+            license_type
+          }
         }
       });
 
       if (invokeError) throw invokeError;
 
       if (data?.checkout_url) {
-        // Redirigi l'utente alla pagina di pagamento sicura di Lemon Squeezy
-        window.location.href = data.checkout_url;
+        // 3. Apriamo il checkout usando la libreria Lemon Squeezy se disponibile, altrimenti redirect
+        if (window.LemonSqueezy) {
+          window.LemonSqueezy.Url.Open(data.checkout_url);
+        } else {
+          window.location.href = data.checkout_url;
+        }
       } else {
-        throw new Error("Failed to generate checkout link.");
+        throw new Error("Could not generate checkout link. Please contact support.");
       }
     } catch (err: any) {
       console.error("Checkout Error:", err);
@@ -111,10 +124,10 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
                     <h3 className="font-bold truncate text-sm">{item.title}</h3>
                     <div className="flex items-center gap-2 mt-0.5">
                       <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${item.type === 'album' ? 'bg-indigo-500 text-white' : 'bg-zinc-500 text-white'}`}>
-                        {item.type}
+                        {item.type === 'album' ? 'Pack' : 'Track'}
                       </span>
                       <p className="text-[10px] font-black uppercase tracking-widest text-sky-500">
-                        {item.licenseType} License
+                        {item.licenseType}
                       </p>
                     </div>
                     <p className="text-sm font-bold mt-1">€{item.price.toFixed(2)}</p>
