@@ -49,7 +49,6 @@ interface AppState {
   toggleTheme: () => void;
 }
 
-// Carica il carrello iniziale dal localStorage
 const savedCart = JSON.parse(localStorage.getItem('pinegroove_cart') || '[]');
 
 export const useStore = create<AppState>((set, get) => ({
@@ -78,10 +77,7 @@ export const useStore = create<AppState>((set, get) => ({
         .eq('id', session.user.id)
         .maybeSingle();
       
-      if (error) {
-        console.error("Error fetching profile:", error.message);
-        return;
-      }
+      if (error) return;
       
       if (data) {
         set({ 
@@ -105,10 +101,7 @@ export const useStore = create<AppState>((set, get) => ({
         .select('track_id, album_id, license_type')
         .eq('user_id', userId);
       
-      if (purchaseError) {
-        console.error("Error fetching purchases:", purchaseError.message);
-        return;
-      }
+      if (purchaseError) return;
       
       const trackIds = new Set<number>();
       const albumIds: number[] = [];
@@ -141,9 +134,11 @@ export const useStore = create<AppState>((set, get) => ({
   // Cart Management
   cart: savedCart,
   addToCart: (item) => {
+    // Esclusione album dal carrello
+    if (item.type !== 'track') return;
+
     const currentCart = get().cart;
-    // Evitiamo duplicati esatti (stesso ID e stessa licenza)
-    const exists = currentCart.find(i => i.id === item.id && i.licenseType === item.licenseType && i.type === item.type);
+    const exists = currentCart.find(i => i.id === item.id && i.licenseType === item.licenseType);
     if (exists) return;
 
     const newCart = [...currentCart, item];

@@ -5,7 +5,8 @@ import { supabase } from '../services/supabase';
 import { MusicTrack, Album, Coupon, PricingItem, CartItem } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { Play, Pause, Clock, Music2, Calendar, FileText, Package, ArrowRight, Sparkles, ChevronDown, ChevronUp, Mic2, Download, FileBadge, Zap, CheckCircle2, Info, Loader2, ShoppingCart, Heart, Ticket, Copy, Check, Scissors, ListMusic, Megaphone, RotateCcw, Radio, X, AudioWaveform, Blend, Plus } from 'lucide-react';
+// Added Zap to the imports from lucide-react
+import { Play, Pause, Clock, Music2, Calendar, FileText, Package, ArrowRight, Sparkles, Mic2, Download, CheckCircle2, Info, Loader2, ShoppingCart, Ticket, Copy, Check, Scissors, ListMusic, Megaphone, RotateCcw, X, AudioWaveform, Blend, Plus, Zap } from 'lucide-react';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
 import { getIdFromSlug, createSlug } from '../utils/slugUtils';
@@ -48,8 +49,6 @@ export const TrackDetail: React.FC = () => {
   const [isLyricsOpen, setIsLyricsOpen] = useState(false);
   
   const navigate = useNavigate();
-
-  const PINEGROOVE_LOGO = "https://media.pinegroove.net/media/logo-pinegroove.svg";
 
   useEffect(() => {
     if (window.createLemonSqueezy) {
@@ -425,7 +424,7 @@ export const TrackDetail: React.FC = () => {
                         <DetailRow label="Released" value={track.year} icon={<Calendar size={16}/>} />
                         <DetailRow label="ISRC" value={track.isrc} icon={<FileText size={16}/>} />
                         <DetailRow label="ISWC" value={track.iswc} icon={<FileText size={16}/>} />
-                        <DetailRow label="Sample Rate" value="16-Bit, 44.1 kHz" icon={<AudioWaveform size={16}/>} />
+                        <DetailRow label="Sample Rate" value="16-Bit Stereo, 44.1 kHz" icon={<AudioWaveform size={16}/>} />
 
                         {hasCredits && (
                             <div className="pt-4 mt-2 border-t border-dashed border-zinc-300 dark:border-zinc-700">
@@ -644,7 +643,7 @@ export const TrackDetail: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="text-xl font-black tracking-tight">Lyrics</h2>
-                    <p className="text-[10px] md:text-xs opacity-50 font-black uppercase tracking-widest">{track.title}</p>
+                    <p className="text-[10px] md:text-xs font-black uppercase tracking-widest">{track.title}</p>
                   </div>
                 </div>
                 <button 

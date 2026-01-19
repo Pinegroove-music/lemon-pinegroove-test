@@ -1,15 +1,14 @@
+
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { ShoppingCart, X, Trash2, ArrowRight, Loader2, Info, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { useNavigate } from 'react-router-dom';
 
-// Mappa degli ID reali di Lemon Squeezy forniti
+// ID reali per il checkout multiplo di tracce
 const LS_VARIANTS = {
   track_standard: '1189602',
-  track_extended: '1189616',
-  album_standard: '1189621',
-  album_extended: '1189629'
+  track_extended: '1189616'
 };
 
 export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
@@ -32,39 +31,22 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
 
     setIsCheckingOut(true);
     try {
-      // 1. Logica di selezione della Variante Capofila
-      // Controlliamo se nel carrello c'è almeno un album o una licenza extended
-      const hasAlbum = cart.some(item => item.type === 'album');
+      // Determina se almeno una traccia richiede la licenza extended
       const isExtended = cart.some(item => item.licenseType === 'extended');
+      const selectedVariantId = isExtended ? LS_VARIANTS.track_extended : LS_VARIANTS.track_standard;
 
-      let selectedVariantId;
-      if (hasAlbum) {
-        selectedVariantId = isExtended ? LS_VARIANTS.album_extended : LS_VARIANTS.album_standard;
-      } else {
-        selectedVariantId = isExtended ? LS_VARIANTS.track_extended : LS_VARIANTS.track_standard;
-      }
+      // Aggrega solo track_ids (gli album sono ora esclusi dal carrello)
+      const track_ids = cart.map(item => item.id).join(',');
 
-      // 2. Preparazione ID per il database (custom_data)
-      const trackIdsArray = cart
-        .filter(item => item.type === 'track')
-        .map(item => item.id);
-      
-      const albumIdsArray = cart
-        .filter(item => item.type === 'album')
-        .map(item => item.id);
-
-      const track_ids = trackIdsArray.length > 0 ? trackIdsArray.join(',') : "";
-      const album_ids = albumIdsArray.length > 0 ? albumIdsArray.join(',') : "";
-
-      // 3. Invocazione Edge Function 'create-checkout'
+      // Invocazione Edge Function per creare il checkout link
       const { data, error: invokeError } = await supabase.functions.invoke('create-checkout', {
         body: {
           variant_id: selectedVariantId,
-          quantity: cart.length, // Lemon Squeezy moltiplicherà il prezzo per questa quantità
+          quantity: cart.length,
           custom_data: {
             user_id: session.user.id,
             track_ids,
-            album_ids,
+            album_ids: "", // Carrello ora processa solo tracce
             license_type: isExtended ? 'extended' : 'standard'
           }
         }
@@ -73,8 +55,13 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
       if (invokeError) throw invokeError;
 
       if (data?.checkout_url) {
-        // 4. Redirect al pagamento
-        window.location.href = data.checkout_url;
+        // Apertura overlay Lemon Squeezy
+        if (window.LemonSqueezy) {
+          window.LemonSqueezy.Url.Open(data.checkout_url);
+        } else {
+          window.location.href = data.checkout_url;
+        }
+        onClose();
       } else {
         throw new Error("Could not generate checkout link. Please contact support.");
       }
@@ -117,26 +104,21 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
             <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
               <ShoppingCart size={64} className="mb-4" />
               <p className="font-bold text-lg">Your cart is empty</p>
-              <p className="text-sm">Start adding music to your collection.</p>
+              <p className="text-sm">Start adding tracks to your collection.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {cart.map((item) => (
                 <div 
-                  key={`${item.type}-${item.id}-${item.licenseType}`}
+                  key={`${item.id}-${item.licenseType}`}
                   className={`p-3 rounded-2xl border flex items-center gap-4 group transition-all ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-gray-50 border-zinc-200'}`}
                 >
                   <img src={item.cover_url} alt={item.title} className="w-16 h-16 rounded-xl object-cover shadow-md" />
                   <div className="flex-1 min-w-0">
                     <h3 className="font-bold truncate text-sm">{item.title}</h3>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className={`text-[8px] font-black uppercase px-1.5 py-0.5 rounded ${item.type === 'album' ? 'bg-indigo-500 text-white' : 'bg-zinc-500 text-white'}`}>
-                        {item.type === 'album' ? 'Pack' : 'Track'}
-                      </span>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-sky-500">
-                        {item.licenseType}
-                      </p>
-                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-sky-500">
+                      {item.licenseType} License
+                    </p>
                     <p className="text-sm font-bold mt-1">€{item.price.toFixed(2)}</p>
                   </div>
                   <button 
@@ -169,7 +151,7 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
             )}
 
             <div className="flex items-center justify-between mb-6">
-              <span className="text-sm font-black uppercase tracking-widest opacity-60">Subtotal ({cart.length} items)</span>
+              <span className="text-sm font-black uppercase tracking-widest opacity-60">Subtotal ({cart.length} tracks)</span>
               <span className="text-2xl font-black">€{totalPrice.toFixed(2)}</span>
             </div>
 
@@ -186,7 +168,7 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
             <div className="mt-4 flex items-start gap-2 opacity-40">
                 <Info size={14} className="shrink-0 mt-0.5" />
                 <p className="text-[10px] leading-tight font-medium">
-                    Secure checkout by Lemon Squeezy. All licenses are perpetual.
+                    Secure checkout by Lemon Squeezy. You will be redirected to the payment page.
                 </p>
             </div>
           </div>

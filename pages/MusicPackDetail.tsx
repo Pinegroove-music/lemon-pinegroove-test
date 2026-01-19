@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
-import { Album, MusicTrack, Coupon, PricingItem, CartItem } from '../types';
+import { Album, MusicTrack, Coupon, PricingItem } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { ShoppingCart, Disc, Play, Pause, Check, ArrowLeft, AlertTriangle, Sparkles, ArrowRight, CheckCircle2, Zap, Library, Download, Loader2, Info, Ticket, Copy, Scissors, Share2, Plus } from 'lucide-react';
+import { ShoppingCart, Disc, Play, Pause, Check, ArrowLeft, AlertTriangle, Sparkles, ArrowRight, CheckCircle2, Zap, Download, Loader2, Info, Ticket, Copy, Scissors } from 'lucide-react';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
 import { getIdFromSlug, createSlug } from '../utils/slugUtils';
@@ -26,12 +26,11 @@ export const MusicPackDetail: React.FC = () => {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [relatedPacks, setRelatedPacks] = useState<Album[]>([]);
   const [pricingData, setPricingData] = useState<PricingItem[]>([]);
-  const { isDarkMode, playTrack, currentTrack, isPlaying, session, purchasedTracks, isSubscriber, ownedTrackIds, addToCart } = useStore();
+  const { isDarkMode, playTrack, currentTrack, isPlaying, session, purchasedTracks, ownedTrackIds } = useStore();
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [downloadingTrackId, setDownloadingTrackId] = useState<number | null>(null);
   const [selectedLicense, setSelectedLicense] = useState<LicenseOption>('standard');
-  const [isAdded, setIsAdded] = useState(false);
   
   const [packCoupon, setPackCoupon] = useState<Coupon | null>(null);
   const [proCoupon, setProCoupon] = useState<Coupon | null>(null);
@@ -127,46 +126,10 @@ export const MusicPackDetail: React.FC = () => {
     return `${item.currency} ${item.price}${type === 'full_catalog' ? '/year' : ''}`;
   };
 
-  const getNumericPrice = (type: string, defaultPrice: number): number => {
-    const item = pricingData.find(p => p.product_type === type);
-    return item ? item.price : defaultPrice;
-  };
-
   const handleCopyCode = (code: string) => {
     navigator.clipboard.writeText(code);
     setCopiedCode(code);
     setTimeout(() => setCopiedCode(null), 2000);
-  };
-
-  const handleAddToCart = () => {
-    if (!album) return;
-    if (selectedLicense === 'pro') {
-        openSubscriptionCheckout();
-        return;
-    }
-
-    const variantId = selectedLicense === 'standard' ? album.variant_id_standard : album.variant_id_extended;
-    const priceType = selectedLicense === 'standard' ? 'music_pack_standard' : 'music_pack_extended';
-    const defaultPrice = selectedLicense === 'standard' ? 49.99 : 69.99;
-
-    if (!variantId) {
-        alert("This license variant is currently unavailable.");
-        return;
-    }
-
-    const item: CartItem = {
-      id: album.id,
-      type: 'album',
-      title: album.title,
-      cover_url: album.cover_url,
-      price: getNumericPrice(priceType, defaultPrice),
-      licenseType: selectedLicense as 'standard' | 'extended',
-      variantId
-    };
-
-    addToCart(item);
-    setIsAdded(true);
-    setTimeout(() => setIsAdded(false), 2000);
   };
 
   const handleBuyNow = () => {
@@ -187,8 +150,10 @@ export const MusicPackDetail: React.FC = () => {
       return;
     }
 
+    // Costruiamo l'URL di checkout diretto per l'album
     const checkoutUrl = `https://pinegroove.lemonsqueezy.com/checkout/buy/${variantId}?checkout[custom][user_id]=${session.user.id}&checkout[custom][license_type]=${selectedLicense}&checkout[custom][album_id]=${album.id}&embed=1`;
     
+    // Apertura tramite overlay Lemon Squeezy
     if (window.LemonSqueezy) {
         window.LemonSqueezy.Url.Open(checkoutUrl);
     } else {
@@ -450,14 +415,6 @@ export const MusicPackDetail: React.FC = () => {
             </div>
 
             <div className="flex flex-col gap-3 mt-8">
-              <button 
-                  onClick={handleAddToCart}
-                  className={`w-full py-5 rounded-2xl font-black shadow-xl transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-xl ${isDarkMode ? 'bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-white' : 'bg-white border-2 border-sky-500 text-sky-600 hover:bg-sky-50'}`}
-              >
-                  {isAdded ? <Check size={24} className="text-emerald-500 animate-in zoom-in" /> : <Plus size={24} />}
-                  {selectedLicense === 'pro' ? 'Start Subscription' : isAdded ? 'Added to Cart' : 'Add To Cart'}
-              </button>
-
               <button 
                   onClick={handleBuyNow}
                   className="w-full bg-sky-500 hover:bg-sky-400 text-white font-black py-5 rounded-2xl shadow-xl shadow-sky-500/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-xl"
