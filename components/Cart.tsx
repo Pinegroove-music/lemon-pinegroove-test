@@ -1,12 +1,16 @@
-
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
 import { ShoppingCart, X, Trash2, ArrowRight, Loader2, Info, AlertCircle } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { useNavigate } from 'react-router-dom';
 
-// Sostituisci questo ID con l'ID reale del tuo prodotto standard/base su Lemon Squeezy
-const DEFAULT_VARIANT_ID = '433299'; 
+// Mappa degli ID reali di Lemon Squeezy forniti
+const LS_VARIANTS = {
+  track_standard: '1189602',
+  track_extended: '1189616',
+  album_standard: '1189621',
+  album_extended: '1189629'
+};
 
 export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { cart, removeFromCart, clearCart, isDarkMode, session } = useStore();
@@ -28,7 +32,19 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
 
     setIsCheckingOut(true);
     try {
-      // 1. Separiamo gli ID delle tracce dai Music Pack (album)
+      // 1. Logica di selezione della Variante Capofila
+      // Controlliamo se nel carrello c'è almeno un album o una licenza extended
+      const hasAlbum = cart.some(item => item.type === 'album');
+      const isExtended = cart.some(item => item.licenseType === 'extended');
+
+      let selectedVariantId;
+      if (hasAlbum) {
+        selectedVariantId = isExtended ? LS_VARIANTS.album_extended : LS_VARIANTS.album_standard;
+      } else {
+        selectedVariantId = isExtended ? LS_VARIANTS.track_extended : LS_VARIANTS.track_standard;
+      }
+
+      // 2. Preparazione ID per il database (custom_data)
       const trackIdsArray = cart
         .filter(item => item.type === 'track')
         .map(item => item.id);
@@ -37,24 +53,19 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
         .filter(item => item.type === 'album')
         .map(item => item.id);
 
-      // Formattiamo come stringhe separate da virgola (o stringa vuota se assenti)
       const track_ids = trackIdsArray.length > 0 ? trackIdsArray.join(',') : "";
       const album_ids = albumIdsArray.length > 0 ? albumIdsArray.join(',') : "";
 
-      // La licenza viene determinata dal primo elemento nel carrello
-      const license_type = cart.length > 0 ? cart[0].licenseType : 'standard';
-
-      // 2. Invochiamo la Edge Function 'create-checkout' per generare il link LS via API
-      // Nota: Questa funzione deve gestire la comunicazione con https://api.lemonsqueezy.com/v1/checkouts
+      // 3. Invocazione Edge Function 'create-checkout'
       const { data, error: invokeError } = await supabase.functions.invoke('create-checkout', {
         body: {
-          variant_id: DEFAULT_VARIANT_ID, // ID prodotto standard
-          quantity: cart.length,           // Numero totale di oggetti
+          variant_id: selectedVariantId,
+          quantity: cart.length, // Lemon Squeezy moltiplicherà il prezzo per questa quantità
           custom_data: {
             user_id: session.user.id,
             track_ids,
             album_ids,
-            license_type
+            license_type: isExtended ? 'extended' : 'standard'
           }
         }
       });
@@ -62,12 +73,8 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
       if (invokeError) throw invokeError;
 
       if (data?.checkout_url) {
-        // 3. Apriamo il checkout usando la libreria Lemon Squeezy se disponibile, altrimenti redirect
-        if (window.LemonSqueezy) {
-          window.LemonSqueezy.Url.Open(data.checkout_url);
-        } else {
-          window.location.href = data.checkout_url;
-        }
+        // 4. Redirect al pagamento
+        window.location.href = data.checkout_url;
       } else {
         throw new Error("Could not generate checkout link. Please contact support.");
       }
@@ -179,7 +186,7 @@ export const Cart: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpe
             <div className="mt-4 flex items-start gap-2 opacity-40">
                 <Info size={14} className="shrink-0 mt-0.5" />
                 <p className="text-[10px] leading-tight font-medium">
-                    Secure checkout by Lemon Squeezy. You will be redirected to the payment page. All licenses are perpetual.
+                    Secure checkout by Lemon Squeezy. All licenses are perpetual.
                 </p>
             </div>
           </div>
