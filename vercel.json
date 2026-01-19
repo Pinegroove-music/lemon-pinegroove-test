@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/(track|album)/:slug",
+      "source": "/(track|music-packs)/:slug",
       "has": [
         {
           "type": "header",
