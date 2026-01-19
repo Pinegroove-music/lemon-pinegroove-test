@@ -78,11 +78,16 @@ export default async function handler(req, res) {
       <meta name="description" content="${description}">
       
       <meta property="og:type" content="${isAlbum ? 'music.album' : 'music.song'}">
+      <meta property="og:url" content="${url}">
       <meta property="og:title" content="${title}">
       <meta property="og:description" content="${description}">
+      
       <meta property="og:image" content="${image}">
-      <meta property="og:url" content="${url}">
-      <meta property="og:site_name" content="Pinegroove">
+      <meta property="og:image:secure_url" content="${image}">
+      <meta property="og:image:type" content="image/jpeg">
+      <meta property="og:image:width" content="1200">
+      <meta property="og:image:height" content="630">
+      <meta property="og:image:alt" content="Cover art for ${item.title}">
 
       <meta name="twitter:card" content="summary_large_image">
       <meta name="twitter:title" content="${title}">
@@ -90,12 +95,9 @@ export default async function handler(req, res) {
       <meta name="twitter:image" content="${image}">
 
       <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
-      
       <script>window.location.href = '${url}';</script>
     </head>
-    <body>
-      <p>Redirecting to ${title}...</p>
-    </body>
+    <body><p>Redirecting...</p></body>
     </html>
   `;
 
