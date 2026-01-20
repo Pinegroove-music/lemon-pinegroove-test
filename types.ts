@@ -83,13 +83,3 @@ export interface FilterState {
   bpmRange: 'slow' | 'medium' | 'fast' | null;
   searchQuery: string;
 }
-
-export interface CartItem {
-  id: number;
-  type: 'track' | 'album';
-  title: string;
-  cover_url: string;
-  price: number;
-  licenseType: 'standard' | 'extended';
-  variantId: string;
-}

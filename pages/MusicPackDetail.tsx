@@ -5,7 +5,7 @@ import { supabase } from '../services/supabase';
 import { Album, MusicTrack, Coupon, PricingItem } from '../types';
 import { useStore } from '../store/useStore';
 import { useSubscription } from '../hooks/useSubscription';
-import { ShoppingCart, Disc, Play, Pause, Check, ArrowLeft, AlertTriangle, Sparkles, ArrowRight, CheckCircle2, Zap, Download, Loader2, Info, Ticket, Copy, Scissors } from 'lucide-react';
+import { ShoppingCart, Disc, Play, Pause, Check, ArrowLeft, AlertTriangle, Sparkles, ArrowRight, CheckCircle2, Zap, Library, Download, Loader2, Info, Ticket, Copy, Scissors, Share2 } from 'lucide-react';
 import { WaveformVisualizer } from '../components/WaveformVisualizer';
 import { SEO } from '../components/SEO';
 import { getIdFromSlug, createSlug } from '../utils/slugUtils';
@@ -26,7 +26,7 @@ export const MusicPackDetail: React.FC = () => {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [relatedPacks, setRelatedPacks] = useState<Album[]>([]);
   const [pricingData, setPricingData] = useState<PricingItem[]>([]);
-  const { isDarkMode, playTrack, currentTrack, isPlaying, session, purchasedTracks, ownedTrackIds } = useStore();
+  const { isDarkMode, playTrack, currentTrack, isPlaying, session, purchasedTracks, isSubscriber, ownedTrackIds } = useStore();
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [downloadingTrackId, setDownloadingTrackId] = useState<number | null>(null);
@@ -37,6 +37,7 @@ export const MusicPackDetail: React.FC = () => {
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   
   const navigate = useNavigate();
+
   const { isPro, openSubscriptionCheckout } = useSubscription();
 
   useEffect(() => {
@@ -82,6 +83,8 @@ export const MusicPackDetail: React.FC = () => {
                     
                     setTracks(sortedTracks);
                 }
+            } else {
+                setTracks([]);
             }
 
             const { data: otherPacks } = await supabase
@@ -94,7 +97,9 @@ export const MusicPackDetail: React.FC = () => {
                 setRelatedPacks(shuffled.slice(0, 4));
             }
 
-            const { data: pData } = await supabase.from('pricing').select('*');
+            const { data: pData } = await supabase
+                .from('pricing')
+                .select('*');
             if (pData) setPricingData(pData as PricingItem[]);
 
             const { data: couponsData } = await supabase
@@ -109,6 +114,7 @@ export const MusicPackDetail: React.FC = () => {
                 if (pC) setPackCoupon(pC as Coupon);
                 if (subC) setProCoupon(subC as Coupon);
             }
+
         } catch (err: any) {
             console.error("Error loading music pack:", err);
             setErrorMsg(err.message || "Unknown error");
@@ -132,7 +138,7 @@ export const MusicPackDetail: React.FC = () => {
     setTimeout(() => setCopiedCode(null), 2000);
   };
 
-  const handleBuyNow = () => {
+  const handleAddToCart = () => {
     if (!album) return;
     if (!session?.user?.id) {
       navigate('/auth');
@@ -150,10 +156,8 @@ export const MusicPackDetail: React.FC = () => {
       return;
     }
 
-    // Costruiamo l'URL di checkout diretto per l'album
     const checkoutUrl = `https://pinegroove.lemonsqueezy.com/checkout/buy/${variantId}?checkout[custom][user_id]=${session.user.id}&checkout[custom][license_type]=${selectedLicense}&checkout[custom][album_id]=${album.id}&embed=1`;
     
-    // Apertura tramite overlay Lemon Squeezy
     if (window.LemonSqueezy) {
         window.LemonSqueezy.Url.Open(checkoutUrl);
     } else {
@@ -414,15 +418,13 @@ export const MusicPackDetail: React.FC = () => {
                 />
             </div>
 
-            <div className="flex flex-col gap-3 mt-8">
-              <button 
-                  onClick={handleBuyNow}
-                  className="w-full bg-sky-500 hover:bg-sky-400 text-white font-black py-5 rounded-2xl shadow-xl shadow-sky-500/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-xl"
-              >
-                  <ShoppingCart size={24} />
-                  {selectedLicense === 'pro' ? 'Subscribe Now' : 'Buy Now'}
-              </button>
-            </div>
+            <button 
+                onClick={handleAddToCart}
+                className="w-full bg-sky-500 hover:bg-sky-400 text-white font-black py-5 rounded-2xl shadow-xl shadow-sky-500/20 transition-all transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-3 text-xl mt-8"
+            >
+                <ShoppingCart size={24} />
+                {selectedLicense === 'pro' ? 'Subscribe Now' : 'Add To Cart'}
+            </button>
             
             <div className="space-y-4 mt-8">
               <p className="text-center text-xs opacity-50 font-medium">
@@ -491,6 +493,7 @@ interface LicenseCardProps {
 }
 
 const LicenseCard: React.FC<LicenseCardProps> = ({ id, title, price, selected, locked, onClick, features, infoLink, highlight, isDarkMode, coupon, onCopyCoupon, copiedCode }) => {
+    // Forziamo i colori in base allo stato esplicito isDarkMode e selected
     const titleColor = selected 
         ? 'text-sky-500' 
         : (isDarkMode ? 'text-white' : 'text-zinc-900');

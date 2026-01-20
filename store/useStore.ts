@@ -1,6 +1,6 @@
 
 import { create } from 'zustand';
-import { MusicTrack, CartItem } from '../types';
+import { MusicTrack } from '../types';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
 
@@ -17,16 +17,10 @@ interface AppState {
   isSubscriber: boolean;
   renewsAt: string | null;
   setSession: (session: Session | null) => void;
-  purchasedTracks: PurchasedItem[]; 
-  ownedTrackIds: Set<number>; 
+  purchasedTracks: PurchasedItem[]; // Rows from purchases table
+  ownedTrackIds: Set<number>; // Flat set of all owned track IDs (direct + via albums)
   fetchPurchases: () => Promise<void>;
   fetchProfile: () => Promise<void>;
-
-  // Cart State
-  cart: CartItem[];
-  addToCart: (item: CartItem) => void;
-  removeFromCart: (id: number, licenseType: string) => void;
-  clearCart: () => void;
 
   // Audio Player State
   currentTrack: MusicTrack | null;
@@ -48,8 +42,6 @@ interface AppState {
   isDarkMode: boolean;
   toggleTheme: () => void;
 }
-
-const savedCart = JSON.parse(localStorage.getItem('pinegroove_cart') || '[]');
 
 export const useStore = create<AppState>((set, get) => ({
   session: null,
@@ -77,7 +69,10 @@ export const useStore = create<AppState>((set, get) => ({
         .eq('id', session.user.id)
         .maybeSingle();
       
-      if (error) return;
+      if (error) {
+        console.error("Error fetching profile:", error.message);
+        return;
+      }
       
       if (data) {
         set({ 
@@ -101,7 +96,10 @@ export const useStore = create<AppState>((set, get) => ({
         .select('track_id, album_id, license_type')
         .eq('user_id', userId);
       
-      if (purchaseError) return;
+      if (purchaseError) {
+        console.error("Error fetching purchases:", purchaseError.message);
+        return;
+      }
       
       const trackIds = new Set<number>();
       const albumIds: number[] = [];
@@ -131,30 +129,6 @@ export const useStore = create<AppState>((set, get) => ({
     }
   },
 
-  // Cart Management
-  cart: savedCart,
-  addToCart: (item) => {
-    // Esclusione album dal carrello
-    if (item.type !== 'track') return;
-
-    const currentCart = get().cart;
-    const exists = currentCart.find(i => i.id === item.id && i.licenseType === item.licenseType);
-    if (exists) return;
-
-    const newCart = [...currentCart, item];
-    set({ cart: newCart });
-    localStorage.setItem('pinegroove_cart', JSON.stringify(newCart));
-  },
-  removeFromCart: (id, licenseType) => {
-    const newCart = get().cart.filter(item => !(item.id === id && item.licenseType === licenseType));
-    set({ cart: newCart });
-    localStorage.setItem('pinegroove_cart', JSON.stringify(newCart));
-  },
-  clearCart: () => {
-    set({ cart: [] });
-    localStorage.removeItem('pinegroove_cart');
-  },
-
   currentTrack: null,
   playlist: [],
   isPlaying: false,
@@ -166,6 +140,7 @@ export const useStore = create<AppState>((set, get) => ({
     if (state.currentTrack?.id === track.id) {
       return { isPlaying: !state.isPlaying };
     }
+    // Se viene passata una nuova lista di brani, la impostiamo come playlist corrente
     const newPlaylist = tracks && tracks.length > 0 ? tracks : state.playlist;
     return { 
       currentTrack: track, 
