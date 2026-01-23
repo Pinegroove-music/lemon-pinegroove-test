@@ -356,7 +356,7 @@ export const MusicPacks: React.FC = () => {
                                         to={`/music-packs/${packSlug}`}
                                         className="bg-sky-600 hover:bg-sky-500 text-white px-5 py-2 rounded-xl font-black transition-all shadow-md active:scale-95 text-[10px] uppercase tracking-widest flex items-center gap-1.5"
                                     >
-                                        View Pack <ArrowRight size={14} />
+                                        Buy Pack <ArrowRight size={14} />
                                     </Link>
                                     <button 
                                         onClick={(e) => handlePlayPack(e, album)}
