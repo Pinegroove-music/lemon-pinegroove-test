@@ -21,6 +21,7 @@ import { GenresPage } from './pages/GenresPage';
 import { MoodsPage } from './pages/MoodsPage';
 import { SeasonalPage } from './pages/SeasonalPage';
 import { InstrumentsPage } from './pages/InstrumentsPage';
+import { MediaTheme } from './pages/MediaTheme';
 import { Pricing } from './pages/Pricing';
 import { UserLicenseAgreement } from './pages/UserLicenseAgreement';
 import { Privacy } from './pages/Privacy';
@@ -410,6 +411,7 @@ const Layout: React.FC = () => {
             <Route path="/categories/moods" element={<MoodsPage />} />
             <Route path="/categories/seasonal" element={<SeasonalPage />} />
             <Route path="/categories/instruments" element={<InstrumentsPage />} />
+            <Route path="/categories/media-themes" element={<MediaTheme />} />
             <Route path="/track/:slug" element={<TrackDetail />} />
             <Route path="/track/:id" element={<TrackDetail />} />
             <Route path="/music-packs" element={<MusicPacks />} />
