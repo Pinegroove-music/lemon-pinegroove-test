@@ -1,6 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
-// Changed react-router to react-router-dom to fix hook issues and missing export errors
 import { Link } from 'react-router-dom';
 import { Calendar, ArrowLeft, Tag, Smile, Music } from 'lucide-react';
 import { supabase } from '../services/supabase';
@@ -16,7 +16,6 @@ export const SeasonalPage: React.FC = () => {
 
   const [seasons, setSeasons] = useState<string[]>(defaultSeasons.sort());
   
-  // Elegant Blue/Purple/Violet Gradients (Slightly cooler tones for seasons)
   const gradients = [
     'bg-gradient-to-br from-blue-500 to-indigo-600',
     'bg-gradient-to-br from-sky-500 to-blue-600',
@@ -28,23 +27,19 @@ export const SeasonalPage: React.FC = () => {
 
   useEffect(() => {
     const fetchSeasons = async () => {
-      // Use the new squeeze_tracks table to fetch seasonal metadata
       const { data } = await supabase.from('squeeze_tracks').select('season');
       if (data) {
-        // Robustly handle JSONB: it can be a string, an array of strings, or null.
         const allSeasons = (data as any[])
           .flatMap((track: any) => {
              const s = track.season;
-             if (Array.isArray(s)) return s; // Handle ["Summer", "Party"]
-             if (typeof s === 'string' && s.trim().length > 0) return [s]; // Handle "Summer"
+             if (Array.isArray(s)) return s; 
+             if (typeof s === 'string' && s.trim().length > 0) return [s]; 
              return [];
           })
           .filter((s: any): s is string => typeof s === 'string' && s.length > 0)
-          .map(s => s.trim()); // Normalize
+          .map(s => s.trim()); 
         
-        // Merge with defaults and remove duplicates
         const uniqueSeasons = Array.from(new Set([...defaultSeasons, ...allSeasons])).sort();
-        
         if (uniqueSeasons.length > 0) setSeasons(uniqueSeasons);
       }
     };
@@ -52,9 +47,9 @@ export const SeasonalPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8 pb-32">
+    <div className="container mx-auto px-4 py-8 md:py-12 pb-32">
         <SEO title="Seasonal Music Themes" description="Find the perfect soundtrack for Christmas, Halloween, Summer, and other seasonal holidays." />
-        {/* Navigation Header */}
+        
         <div className="flex flex-wrap items-center gap-4 mb-8 text-sm font-medium">
             <Link to="/library" className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
                 <ArrowLeft size={16} /> Back to Library
@@ -71,10 +66,10 @@ export const SeasonalPage: React.FC = () => {
             </Link>
         </div>
 
-        <h1 className="text-4xl font-black mb-4 flex items-center gap-3 tracking-tight">
-            <Calendar className="text-sky-500" size={36} /> SEASONAL THEMES
+        <h1 className="text-3xl md:text-5xl font-black mb-4 flex items-center gap-3 tracking-tight">
+            <Calendar className="text-sky-500" size={32} /> SEASONAL THEMES
         </h1>
-        <p className="text-lg opacity-70 mb-12 max-w-2xl">
+        <p className="text-lg md:text-xl opacity-70 mb-12 max-w-2xl">
             Find the right music for every time of the year. From spooky Halloween vibes to cozy Christmas jingles.
         </p>
 

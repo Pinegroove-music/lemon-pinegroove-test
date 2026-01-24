@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
 import { Link } from 'react-router-dom';
@@ -108,10 +109,9 @@ export const InstrumentsPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 pb-32">
+    <div className="container mx-auto px-4 py-8 md:py-12 pb-32">
       <SEO title="Browse Music by Instrument" description="Find royalty free music featuring specific instruments like Piano, Guitar, Strings, Drums, and more." />
       
-      {/* Navigation Header */}
       <div className="flex flex-wrap items-center gap-4 mb-8 text-sm font-medium">
         <Link to="/library" className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
           <ArrowLeft size={16} /> Back to Library
@@ -129,10 +129,10 @@ export const InstrumentsPage: React.FC = () => {
       </div>
       
       <div className="mb-10 text-center">
-        <h1 className="text-4xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 tracking-tight">
-          <Music className="text-sky-500" size={40} /> INSTRUMENTS
+        <h1 className="text-3xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 tracking-tight">
+          <Music className="text-sky-500" size={32} /> INSTRUMENTS
         </h1>
-        <p className="text-xl opacity-70 max-w-2xl mx-auto">
+        <p className="text-lg md:text-xl opacity-70 max-w-2xl mx-auto">
           Explore our catalog by instrument family. Click a card to reveal specific sounds.
         </p>
       </div>
@@ -202,7 +202,6 @@ export const InstrumentsPage: React.FC = () => {
           );
         })}
 
-        {/* Dynamic Leftovers Card */}
         {uncategorizedInstruments.length > 0 && (
           <div 
             className={`

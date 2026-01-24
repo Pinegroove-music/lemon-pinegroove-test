@@ -1,12 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
-// Changed react-router to react-router-dom to fix hook issues and missing export errors
 import { Link } from 'react-router-dom';
 import { Smile, ArrowLeft, Tag, Calendar, Music, Sun, Moon, Coffee, Heart, Sparkles, ChevronDown, Layers } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { SEO } from '../components/SEO';
 
-// Define the Category Structure
 type MoodCategory = {
   title: string;
   icon: React.ReactNode;
@@ -15,11 +14,8 @@ type MoodCategory = {
 
 export const MoodsPage: React.FC = () => {
   const { isDarkMode } = useStore();
-  
-  // State to track which categories are expanded
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   
-  // Green/Teal/Emerald Gradients
   const gradients = [
     'bg-gradient-to-br from-emerald-500 to-green-600',
     'bg-gradient-to-br from-green-500 to-teal-600',
@@ -28,7 +24,6 @@ export const MoodsPage: React.FC = () => {
     'bg-gradient-to-br from-teal-600 to-emerald-700',
   ];
 
-  // 1. Define the Macro-Categories based on user input
   const moodCategories: MoodCategory[] = [
     {
         title: "Positive & Energetic",
@@ -84,12 +79,10 @@ export const MoodsPage: React.FC = () => {
     }
   ];
 
-  // State to hold moods found in DB that are NOT in the categories above
   const [uncategorizedMoods, setUncategorizedMoods] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchMoods = async () => {
-      // Use the new squeeze_tracks table to fetch moods
       const { data } = await supabase.from('squeeze_tracks').select('mood');
       if (data) {
         const allDbMoods = (data as any[])
@@ -97,11 +90,7 @@ export const MoodsPage: React.FC = () => {
           .filter((m: any): m is string => typeof m === 'string' && m.length > 0);
         
         const uniqueDbMoods = Array.from(new Set(allDbMoods));
-        
-        // Flatten all categorized moods for comparison (lowercase)
         const categorizedSet = new Set(moodCategories.flatMap(c => c.submoods.map(s => s.toLowerCase())));
-        
-        // Find leftovers
         const leftovers = uniqueDbMoods.filter(m => !categorizedSet.has(m.toLowerCase())).sort();
         
         if (leftovers.length > 0) {
@@ -121,10 +110,9 @@ export const MoodsPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 pb-32">
+    <div className="container mx-auto px-4 py-8 md:py-12 pb-32">
         <SEO title="Browse Music by Mood" description="Filter royalty free music by emotion. Inspiring, Happy, Dark, Dramatic, and more." />
         
-        {/* Navigation Header */}
         <div className="flex flex-wrap items-center gap-4 mb-8 text-sm font-medium">
             <Link to="/library" className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
                 <ArrowLeft size={16} /> Back to Library
@@ -142,15 +130,14 @@ export const MoodsPage: React.FC = () => {
         </div>
 
         <div className="mb-10 text-center">
-            <h1 className="text-4xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 tracking-tight">
-                <Smile className="text-emerald-500" size={40} /> MOODS
+            <h1 className="text-3xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 tracking-tight">
+                <Smile className="text-emerald-500" size={32} /> MOODS
             </h1>
-            <p className="text-xl opacity-70 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl opacity-70 max-w-2xl mx-auto">
                 Find the perfect emotional tone for your project. Click a card to reveal specific moods.
             </p>
         </div>
 
-        {/* Grid System matching GenresPage */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-[1920px] mx-auto">
             {moodCategories.map((category, index) => {
                 const isExpanded = expandedCategories.includes(category.title);
@@ -165,7 +152,6 @@ export const MoodsPage: React.FC = () => {
                             ${isExpanded ? 'ring-2 ring-emerald-500/50 shadow-xl' : 'hover:shadow-lg'}
                         `}
                     >
-                        {/* Header Area (Clickable) */}
                         <button 
                             onClick={() => toggleCategory(category.title)}
                             className={`
@@ -188,7 +174,6 @@ export const MoodsPage: React.FC = () => {
                             </div>
                         </button>
 
-                        {/* Content Area (Collapsible) */}
                         <div 
                             className={`
                                 overflow-hidden transition-all duration-300 ease-in-out
@@ -218,7 +203,6 @@ export const MoodsPage: React.FC = () => {
                 );
             })}
 
-            {/* "More Moods" Card (Fallback) */}
             {uncategorizedMoods.length > 0 && (
                 <div 
                     className={`

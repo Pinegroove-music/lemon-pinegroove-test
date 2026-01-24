@@ -1,12 +1,11 @@
+
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../store/useStore';
-// Changed react-router to react-router-dom to fix hook issues and missing export errors
 import { Link } from 'react-router-dom';
 import { Tag, ArrowLeft, Smile, Calendar, Music, Clapperboard, Briefcase, Zap, Guitar, Coffee, Mic2, Globe, Cloud, Layers, Package, ChevronDown, ChevronUp, Waves } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { SEO } from '../components/SEO';
 
-// Define the Category Structure
 type GenreCategory = {
   title: string;
   icon: React.ReactNode;
@@ -15,11 +14,8 @@ type GenreCategory = {
 
 export const GenresPage: React.FC = () => {
   const { isDarkMode } = useStore();
-  
-  // State to track which categories are expanded
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   
-  // Blue/Purple/Sky Gradients (Matching Home Page)
   const gradients = [
     'bg-gradient-to-br from-sky-500 to-blue-600',
     'bg-gradient-to-br from-blue-500 to-indigo-600',
@@ -29,7 +25,6 @@ export const GenresPage: React.FC = () => {
     'bg-gradient-to-br from-blue-600 to-violet-700',
   ];
 
-  // 1. Define the Macro-Categories
   const genreCategories: GenreCategory[] = [
     {
         title: "Cinematic & Film Score",
@@ -64,7 +59,6 @@ export const GenresPage: React.FC = () => {
     {
         title: "Jazz",
         icon: (
-            // Custom Trumpet Icon
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 8v8" />
                 <path d="M9 8v8" />
@@ -83,7 +77,6 @@ export const GenresPage: React.FC = () => {
     {
         title: "Funk & Groove",
         icon: (
-            // Custom Drum Icon
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <ellipse cx="12" cy="7" rx="10" ry="5" />
                 <path d="M2 7v10c0 2.76 4.48 5 10 5s10-2.24 10-5v-10" />
@@ -113,12 +106,10 @@ export const GenresPage: React.FC = () => {
     }
   ];
 
-  // State to hold genres found in DB that are NOT in the categories above
   const [uncategorizedGenres, setUncategorizedGenres] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchGenres = async () => {
-      // Fetch genres from the new squeeze_tracks table
       const { data } = await supabase.from('squeeze_tracks').select('genre');
 
       if (data) {
@@ -147,10 +138,9 @@ export const GenresPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 pb-32">
+    <div className="container mx-auto px-4 py-8 md:py-12 pb-32">
         <SEO title="Browse Music by Genre" description="Explore our catalog categorized by Cinematic, Corporate, Rock, Electronic, and more." />
         
-        {/* Navigation Header */}
         <div className="flex flex-wrap items-center gap-4 mb-8 text-sm font-medium">
             <Link to="/library" className="flex items-center gap-2 opacity-60 hover:opacity-100 transition-opacity">
                 <ArrowLeft size={16} /> Back to Library
@@ -168,15 +158,14 @@ export const GenresPage: React.FC = () => {
         </div>
         
         <div className="mb-10 text-center">
-            <h1 className="text-4xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 tracking-tight">
-                <Tag className="text-sky-500" size={40} /> GENRES
+            <h1 className="text-3xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 tracking-tight">
+                <Tag className="text-sky-500" size={32} /> GENRES
             </h1>
-            <p className="text-xl opacity-70 max-w-2xl mx-auto">
+            <p className="text-lg md:text-xl opacity-70 max-w-2xl mx-auto">
                 Explore our music library by category. Click a card to reveal subgenres.
             </p>
         </div>
 
-        {/* 3-Column Grid for Desktop, 1-Column for Mobile */}
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-[1920px] mx-auto">
             {genreCategories.map((category, index) => {
                 const isExpanded = expandedCategories.includes(category.title);
@@ -191,7 +180,6 @@ export const GenresPage: React.FC = () => {
                             ${isExpanded ? 'ring-2 ring-sky-500/50 shadow-xl' : 'hover:shadow-lg'}
                         `}
                     >
-                        {/* Header Area (Clickable) */}
                         <button 
                             onClick={() => toggleCategory(category.title)}
                             className={`
@@ -214,7 +202,6 @@ export const GenresPage: React.FC = () => {
                             </div>
                         </button>
 
-                        {/* Content Area (Collapsible) */}
                         <div 
                             className={`
                                 overflow-hidden transition-all duration-300 ease-in-out
@@ -244,7 +231,6 @@ export const GenresPage: React.FC = () => {
                 );
             })}
 
-            {/* "More Genres" Card */}
             {uncategorizedGenres.length > 0 && (
                 <div 
                     className={`

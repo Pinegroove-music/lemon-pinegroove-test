@@ -243,8 +243,9 @@ const Layout: React.FC = () => {
   const isFaqPage = location.pathname === '/faq';
   const isLicenseAgreementPage = location.pathname === '/user-license-agreement';
   
-  const hideSearchBarContent = isCategoryPage || isContentIdPage || isAboutPage || isFaqPage || isLicenseAgreementPage;
-  const shouldHideHeaderFrame = isCategoryPage || isLicenseAgreementPage;
+  // Categorical pages now show header correctly on all devices
+  const hideSearchBarContent = isLicenseAgreementPage;
+  const shouldHideHeaderFrame = isLicenseAgreementPage;
   const isHeroPage = isHomePage || isAboutPage || isContentIdPage || isFaqPage;
 
   let headerWrapperClasses = `z-50 w-full transition-all duration-500 `;
