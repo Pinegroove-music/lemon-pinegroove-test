@@ -56,8 +56,7 @@ export const GenresPage: React.FC = () => {
     {
         title: "AMBIENT & CHILL",
         icon: <Cloud size={24} />,
-        subgenres: ['Ambient', 'Atmospheric', 'Chillout', 'Chillstep', 'Chillwave', 'Deep House', 'Downtempo', 'Drone', 'Easy Listening', 'Exotica', 'Lo-Fi', 'Lounge', 'Meditation', 'Minimal', 'New Age', 'Piano', 'Relaxing', 'Smooth Jazz
-        ']
+        subgenres: ['Ambient', 'Atmospheric', 'Chillout', 'Chillstep', 'Chillwave', 'Deep House', 'Downtempo', 'Drone', 'Easy Listening', 'Exotica', 'Lo-Fi', 'Lounge', 'Meditation', 'Minimal', 'New Age', 'Piano', 'Relaxing', 'Smooth Jazz']
     },
     {
         title: "COUNTRY & FOLK",
