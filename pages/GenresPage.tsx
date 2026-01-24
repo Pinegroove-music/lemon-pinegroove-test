@@ -46,7 +46,7 @@ export const GenresPage: React.FC = () => {
     {
         title: "POP & ELECTRONIC",
         icon: <Zap size={24} />,
-        subgenres: ['Acapella', 'Breakbeat', 'Dance', 'EDM', 'Electro', 'Electronica', 'Electro Pop', 'Future', 'Glitch', 'House', 'Jungle', 'Pop', 'Retrowave', 'Synthwave', 'Trap', 'Tropical House', 'Vaporwave', 'Vocals']
+        subgenres: ['Acapella', 'Ballad', 'Breakbeat', 'Dance', 'EDM', 'Electro', 'Electronica', 'Electro Pop', 'Future', 'Glitch', 'House', 'Jungle', 'Pop', 'Retrowave', 'Synthwave', 'Trap', 'Tropical House', 'Vaporwave', 'Vocals']
     },
     {
         title: "ROCK",
@@ -71,7 +71,7 @@ export const GenresPage: React.FC = () => {
     {
         title: "CLASSICAL",
         icon: <Music size={24} />,
-        subgenres: ['Ballet', 'Baroque', 'Cancan', 'Chamber Music', 'Choir', 'Classical', 'Concerto', 'Neoclassical', 'Opera', 'Orchestral', 'Requiem', 'Romanticism', 'Symphonic', 'Waltz']
+        subgenres: ['Ballet', 'Baroque', 'Cancan', 'Chamber Music', 'Choir', 'Classical', 'Concerto', 'March', 'Neoclassical', 'Opera', 'Orchestral', 'Requiem', 'Romanticism', 'Symphonic', 'Waltz']
     },
     {
         title: "FUNK & GROOVE",
