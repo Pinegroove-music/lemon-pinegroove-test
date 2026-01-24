@@ -2,7 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from '../store/useStore';
 import { Link, useLocation } from 'react-router-dom';
-import { Smile, ArrowLeft, Tag, Calendar, Music, Sun, Moon, Coffee, Heart, Sparkles, ChevronDown, Layers, Clapperboard, Disc3, Play, Pause, Download, Loader2, Music2 } from 'lucide-react';
+import { Smile, ArrowLeft, Tag, Calendar, Briefcase, Music, Sun, Moon, Coffee, Film, Search, Heart, Globe, Sparkles, ChevronDown, CloudRain, Layers, Clapperboard, Disc3, Play, Pause, Download, Loader2, Music2, Zap } from 'lucide-react';
 import { supabase } from '../services/supabase';
 import { SEO } from '../components/SEO';
 import { MusicTrack } from '../types';
@@ -33,58 +33,107 @@ export const MoodsPage: React.FC = () => {
 
   const moodCategories: MoodCategory[] = [
     {
-        title: "POSITIVE & ENERGETIC",
+        title: "POSITIVE & BRIGHT",
         icon: <Sun size={24} />,
         submoods: [
-            'Happy', 'Joyful', 'Joyous', 'Cheerful', 'Upbeat', 'Uplifting', 'Positive', 
-            'Feel-good', 'Exuberant', 'Vibrant', 'Triumphant', 'Energetic', 'Dynamic', 
-            'Fast', 'Lively', 'Hectic', 'Breezy', 'Carefree', 'Playful', 'Whimsical', 
-            'Quirky', 'Sassy', 'Confident', 'Celebratory', 'Festive', 'Glamorous', 
-            'Heroic', 'Inspirational', 'Inspiring', 'Motivational', 'Optimistic', 'Powerful'
+            'happy', 'uplifting', 'positive', 'carefree', 'bright', 'bouncy', 
+            'feel-good', 'vibrant', 'optimistic', 'joyous', 'delightful', 
+            'exuberant', 'excited', 'exciting', 'hopeful', 'inspiring', 
+            'sweet', 'upbeat', 'warm', 'celebratory', 'festive'
         ]
     },
     {
-        title: "DARK, TENSE & DRAMATIC",
+        title: "ENERGETIC & POWERFUL",
+        icon: <Zap size={24} />,
+        submoods: [
+            'energetic', 'powerful', 'aggressive', 'epic', 'heroic', 'bold', 
+            'dynamic', 'fast', 'triumphant', 'wild', 'confident', 'action', 
+            'driving', 'enthusiastic', 'determined', 'rebellious', 'spirited',
+            'urgent', 'lively'
+        ]
+    },
+    {
+        title: "DARK & SUSPENSE",
         icon: <Moon size={24} />,
         submoods: [
-            'Tense', 'Suspenseful', 'Suspense', 'Mysterious', 'Intriguing', 'Curious', 
-            'Dark', 'Sinister', 'Ominous', 'Menacing', 'Aggressive', 'Macabre', 
-            'Creepy', 'Eerie', 'Spooky', 'Frightening', 'Disturbing', 'Horror', 
-            'Dramatic', 'Intense', 'Chaotic', 'Thrilling', 'Wild', 'Epic'
+            'dark', 'scary', 'spooky', 'sinister', 'ominous', 'tense', 
+            'suspenseful', 'menacing', 'creepy', 'eerie', 'horror', 'frightening',
+            'disturbing', 'anxious', 'desperate', 'macabre', 'threatening'
         ]
     },
     {
-        title: "REFLECTIVE & CONTEMPLATIVE",
+        title: "RELAXED & PEACEFUL",
         icon: <Coffee size={24} />,
         submoods: [
-            'Calm', 'Tranquil', 'Serene', 'Peaceful', 'Relaxation', 'Relaxed', 'Relaxing', 
-            'Soothing', 'Cozy', 'Comfortable', 'Meditative', 'Dreamy', 'Ethereal', 
-            'Enchanting', 'Magical', 'Mystical', 'Atmospheric', 'Contemplative', 
-            'Pensive', 'Reflective', 'Thoughtful', 'Introspective', 'Moody', 
-            'Nostalgic', 'Melancholic', 'Melancholy', 'Gloomy', 'Lonesome', 'Hurt', 
-            'Sad', 'Tragical'
+            'calm', 'relaxed', 'peaceful', 'soothing', 'serene', 'cozy', 
+            'tranquil', 'comforting', 'meditative', 'breezy', 'idyllic', 
+            'laid-back', 'mellow', 'soft'
         ]
     },
     {
-        title: "EMOTION & PASSION",
-        icon: <Heart size={24} />,
+        title: "CINEMATIC & DRAMATIC",
+        icon: <Film size={24} />,
         submoods: [
-            'Romantic', 'Emotional', 'Passionate', 'Erotic', 'Seductive', 'Sensual', 
-            'Sexy', 'Flirtatious', 'Tender', 'Intimate', 'Heartwarming', 'Sentimental', 
-            'Soulful'
+            'dramatic', 'emotional', 'majestic', 'atmospheric', 'cinematic', 
+            'intense', 'chaotic', 'thrilling', 'storytelling', 'awe-inspiring', 
+            'captivating', 'ethereal', 'magical', 'mysterious', 'spiritual',
+            'adventurous', 'beautiful'
         ]
     },
     {
-        title: "THEMES & STYLES",
+        title: "QUIRKY & FUN",
         icon: <Sparkles size={24} />,
         submoods: [
-            'Adventure', 'Adventurous', 'Majestic', 'Groovy', 'Rhythmic', 'Percussion', 
-            'Elegant', 'Chic', 'Cool', 'Charming', 'Luxurious', 'Regal', 'Beautiful', 
-            'Exotic', 'Psychedelic', 'Experimental', 'Orchestral', 'Score', 'Synth', 
-            'Corporate', 'Comedic', 'Funny', 'Humorous', 'Noire'
+            'quirky', 'funny', 'whimsical', 'mischievous', 'amusing', 
+            'eccentric', 'playful', 'humorous', 'sassy', 'comedic', 
+            'ironic', 'fun', 'exotic', 'groovy', 'psychedelic', 'dancing', 'rhythmic'
+        ]
+    },
+    {
+        title: "ROMANTIC & SENSUAL",
+        icon: <Heart size={24} />,
+        submoods: [
+            'romantic', 'sensual', 'intimate', 'sexy', 'seductive', 
+            'elegant', 'flirtatious', 'tender', 'heartwarming', 'charming', 
+            'chic', 'classy', 'glamorous', 'luxurious', 'passionate', 'seduction',
+            'soulful', 'cool'
+        ]
+    },
+    {
+        title: "SAD & NOSTALGIC",
+        icon: <CloudRain size={24} />,
+        submoods: [
+            'sad', 'melancholic', 'nostalgic', 'gloomy', 'sentimental', 
+            'poignant', 'mournful', 'tragic', 'lonesome', 'hurt', 'somber', 
+            'solemn', 'moody', 'noir'
+        ]
+    },
+    {
+        title: "BUSINESS & INNOVATION",
+        icon: <Briefcase size={24} />,
+        submoods: [
+            'corporate', 'informative', 'intelligent', 'ambitious', 'focused', 
+            'futuristic', 'modern', 'professional', 'sophisticated', 'serious',
+            'thoughtful', 'creative', 'abstract', 'innovative', 'motivational'
+        ]
+    },
+    {
+        title: "CULTURE & HERITAGE",
+        icon: <Globe size={24} />,
+        submoods: [
+            'noble', 'regal', 'royal', 'patriotic', 'historic', 'prestigious', 
+            'proud', 'culture', 'heritage'
+        ]
+    },
+    {
+        title: "CONTEMPLATIVE",
+        icon: <Search size={24} />,
+        submoods: [
+            'contemplative', 'introspective', 'reflective', 'pensive', 
+            'curious', 'inquiring', 'intriguing', 'daydream', 'dreamy'
         ]
     }
-  ];
+];
 
   const [uncategorizedMoods, setUncategorizedMoods] = useState<string[]>([]);
 
