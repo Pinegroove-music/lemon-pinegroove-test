@@ -272,7 +272,7 @@ const Layout: React.FC = () => {
       internalHeaderClasses += `border-b ${isDarkMode ? 'bg-zinc-950 border-zinc-800' : 'bg-white border-zinc-100'} `;
   }
 
-  const showFooter = location.pathname !== '/library' && !isAuthPage && !isResetPasswordPage;
+  const showFooter = !isAuthPage && !isResetPasswordPage;
 
   return (
     <div className={`min-h-[100dvh] flex transition-colors duration-300 ${isDarkMode ? 'dark bg-zinc-950 text-zinc-100' : 'bg-white text-zinc-900'}`}>
