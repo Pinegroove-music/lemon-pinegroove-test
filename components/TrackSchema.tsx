@@ -29,9 +29,9 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl, pri
     .filter(p => p.product_type === 'single_track_standard' || p.product_type === 'single_track_extended')
     .map(p => ({
       "@type": "Offer",
-      "name": p.product_name,
+      "name": p.product_name, // Mantiene il nome specifico (Standard Sync License / Extended Sync License)
       "price": p.price,
-      "priceCurrency": p.currency,
+      "priceCurrency": p.currency === '€' ? 'EUR' : p.currency, // Converte il simbolo in codice ISO standard
       "availability": "https://schema.org/InStock",
       "category": "Synchronization License",
       "url": currentUrl,
@@ -52,7 +52,7 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl, pri
     "description": track.description || `Original music track "${track.title}" by Francesco Biondi.`,
     "duration": getDurationISO(track.duration),
     "isrcCode": track.isrc,
-    "encodingFormat": "audio/wav (16-bit, 44.1 kHz)",
+    "encodingFormat": "audio/wav", // Semplificato per compatibilità Google Search
     "byArtist": {
       "@type": "Person",
       "@id": personId,
