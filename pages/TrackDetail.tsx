@@ -254,7 +254,7 @@ export const TrackDetail: React.FC = () => {
             datePublished: track.year?.toString()
           }}
         />
-        <TrackSchema track={track} currentUrl={currentFullUrl} />
+        <TrackSchema track={track} currentUrl={currentFullUrl} pricing={pricingData} />
 
         <div className="flex flex-col md:flex-row gap-8 lg:gap-12 mb-12 items-start">
             <div className="w-full max-w-md md:w-80 lg:w-96 flex-shrink-0 aspect-square rounded-2xl overflow-hidden shadow-2xl relative group mx-auto md:mx-0">

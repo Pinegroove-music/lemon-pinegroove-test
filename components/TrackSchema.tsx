@@ -1,13 +1,14 @@
 
 import React from 'react';
-import { MusicTrack } from '../types';
+import { MusicTrack, PricingItem } from '../types';
 
 interface TrackSchemaProps {
   track: MusicTrack;
   currentUrl: string;
+  pricing: PricingItem[];
 }
 
-export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl }) => {
+export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl, pricing }) => {
   // Conversione durata in ISO 8601 (es: PT3M45S)
   const getDurationISO = (seconds: number | null) => {
     if (!seconds) return undefined;
@@ -18,6 +19,28 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl }) =
 
   const personId = "https://www.pinegroove.net/about#francescobiondi";
 
+  // Mapping dei generi come array di stringhe
+  const genres = Array.isArray(track.genre) 
+    ? track.genre 
+    : (track.genre ? [track.genre] : []);
+
+  // Costruzione delle offerte basate sulla tabella pricing
+  const licenseOffers = pricing
+    .filter(p => p.product_type === 'single_track_standard' || p.product_type === 'single_track_extended')
+    .map(p => ({
+      "@type": "Offer",
+      "name": p.product_name,
+      "price": p.price,
+      "priceCurrency": p.currency,
+      "availability": "https://schema.org/InStock",
+      "category": "Synchronization License",
+      "url": currentUrl,
+      "seller": {
+        "@type": "Person",
+        "@id": personId
+      }
+    }));
+
   const schema = {
     "@context": "https://schema.org",
     "@type": "MusicRecording",
@@ -25,6 +48,7 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl }) =
     "name": track.title,
     "url": currentUrl,
     "image": track.cover_url,
+    "genre": genres,
     "description": track.description || `Original music track "${track.title}" by Francesco Biondi.`,
     "duration": getDurationISO(track.duration),
     "isrcCode": track.isrc,
@@ -44,7 +68,7 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl }) =
         "@id": personId
       }
     },
-    "offers": {
+    "offers": licenseOffers.length > 0 ? licenseOffers : {
       "@type": "Offer",
       "url": currentUrl,
       "availability": "https://schema.org/InStock",
