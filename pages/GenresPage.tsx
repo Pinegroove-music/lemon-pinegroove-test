@@ -22,7 +22,7 @@ export const GenresPage: React.FC = () => {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [uncategorizedGenres, setUncategorizedGenres] = useState<string[]>([]);
-  const cloudRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   
   const gradients = [
     'bg-gradient-to-br from-sky-500 to-blue-600',
@@ -173,7 +173,7 @@ export const GenresPage: React.FC = () => {
         setOpenCategory(title);
         setSelectedGenre(null); 
         setTimeout(() => {
-            cloudRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     }
   };
@@ -270,11 +270,11 @@ export const GenresPage: React.FC = () => {
         </div>
 
         {openCategory && (
-            <div ref={cloudRef} className="max-w-[1440px] mx-auto animate-in fade-in slide-in-from-top-4 duration-500 scroll-mt-24">
+            <div className="max-w-[1440px] mx-auto animate-in fade-in slide-in-from-top-4 duration-500 scroll-mt-36">
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
                     
-                    {/* LEFT COLUMN: Tag Cloud (1/3) */}
-                    <div className={`w-full lg:w-1/3 p-8 md:p-10 rounded-[2.5rem] border sticky top-24 ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-100 shadow-xl shadow-sky-500/5'}`}>
+                    {/* LEFT COLUMN: Tags (1/3) - LG ONLY STICKY - MODIFIED FOR ANNOUNCEMENT BAR */}
+                    <div className={`w-full lg:w-1/3 p-8 md:p-10 rounded-[2.5rem] border lg:sticky lg:top-36 ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-100 shadow-xl shadow-sky-500/5'}`}>
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-3">
                                 <div className="p-3 bg-sky-500 rounded-2xl text-white shadow-lg">
@@ -282,7 +282,7 @@ export const GenresPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-black tracking-tight uppercase leading-none">{openCategory}</h2>
-                                    <p className="text-[10px] opacity-50 font-black uppercase tracking-widest mt-1">Tags</p>
+                                    <p className="text-[10px] opacity-50 font-black uppercase tracking-widest mt-1">Filter Tags</p>
                                 </div>
                             </div>
                             <button 
@@ -313,8 +313,8 @@ export const GenresPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN: Results (2/3) */}
-                    <div className="w-full lg:w-2/3">
+                    {/* RIGHT COLUMN: Results (2/3) - MODIFIED scroll-mt FOR ANNOUNCEMENT BAR */}
+                    <div ref={resultsRef} className="w-full lg:w-2/3 scroll-mt-36">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 border-b pb-4 border-zinc-100 dark:border-zinc-800">
                             <div className="flex items-center gap-4">
                                 <div className="p-2 bg-sky-500/10 rounded-xl text-sky-500">

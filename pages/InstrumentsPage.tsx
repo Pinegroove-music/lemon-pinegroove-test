@@ -22,7 +22,7 @@ export const InstrumentsPage: React.FC = () => {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [uncategorizedInstruments, setUncategorizedInstruments] = useState<string[]>([]);
-  const cloudRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   const gradients = [
     'bg-gradient-to-br from-sky-500 to-blue-600',
@@ -154,7 +154,7 @@ export const InstrumentsPage: React.FC = () => {
         setOpenCategory(title);
         setSelectedInstrument(null);
         setTimeout(() => {
-            cloudRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     }
   };
@@ -197,11 +197,11 @@ export const InstrumentsPage: React.FC = () => {
       </div>
       
       <div className="mb-10 text-center">
-        <h1 className="text-3xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 tracking-tight uppercase">
+        <h1 className="text-3xl md:text-5xl font-black mb-4 flex items-center justify-center gap-3 tracking-tight uppercase text-center">
           <Music className="text-sky-500" size={32} /> Instruments
         </h1>
         <p className="text-lg md:text-xl opacity-70 max-w-2xl mx-auto font-medium">
-          Select an instrument family. Refine your search with specific tags.
+          Select an instrument family to explore, then filter by specific sound.
         </p>
       </div>
 
@@ -252,11 +252,11 @@ export const InstrumentsPage: React.FC = () => {
       </div>
 
       {openCategory && (
-        <div ref={cloudRef} className="max-w-[1440px] mx-auto animate-in fade-in slide-in-from-top-4 duration-500 scroll-mt-24">
+        <div className="max-w-[1440px] mx-auto animate-in fade-in slide-in-from-top-4 duration-500 scroll-mt-36">
             <div className="flex flex-col lg:flex-row gap-8 items-start">
                 
-                {/* LEFT COLUMN: Tags (1/3) */}
-                <div className={`w-full lg:w-1/3 p-8 md:p-10 rounded-[2.5rem] border sticky top-24 ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-100 shadow-2xl shadow-sky-500/5'}`}>
+                {/* LEFT COLUMN: Tags (1/3) - LG ONLY STICKY - MODIFIED FOR ANNOUNCEMENT BAR */}
+                <div className={`w-full lg:w-1/3 p-8 md:p-10 rounded-[2.5rem] border lg:sticky lg:top-36 ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-100 shadow-2xl shadow-sky-500/5'}`}>
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-sky-500 rounded-2xl text-white shadow-lg">
@@ -264,7 +264,7 @@ export const InstrumentsPage: React.FC = () => {
                             </div>
                             <div>
                                 <h2 className="text-xl font-black tracking-tight uppercase leading-none">{openCategory}</h2>
-                                <p className="text-[10px] opacity-50 font-black uppercase tracking-widest mt-1">Instrument tags</p>
+                                <p className="text-[10px] opacity-50 font-black uppercase tracking-widest mt-1">Filter Tags</p>
                             </div>
                         </div>
                         <button 
@@ -295,8 +295,8 @@ export const InstrumentsPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* RIGHT COLUMN: Results (2/3) */}
-                <div className="w-full lg:w-2/3">
+                {/* RIGHT COLUMN: Results (2/3) - MODIFIED scroll-mt FOR ANNOUNCEMENT BAR */}
+                <div ref={resultsRef} className="w-full lg:w-2/3 scroll-mt-36">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 border-b pb-4 border-zinc-100 dark:border-zinc-800">
                         <div className="flex items-center gap-4">
                             <div className="p-2 bg-sky-500/10 rounded-xl text-sky-500">
@@ -317,7 +317,7 @@ export const InstrumentsPage: React.FC = () => {
                             <p className="font-bold">Gathering results...</p>
                         </div>
                     ) : tracks.length === 0 ? (
-                        <div className="py-20 text-center opacity-40 italic border border-dashed rounded-3xl">No tracks found for this instrument.</div>
+                        <div className="py-20 text-center opacity-40 italic border border-dashed rounded-3xl">No tracks found for this selection.</div>
                     ) : (
                         <div className="flex flex-col gap-3">
                             {tracks.map(track => (
@@ -391,15 +391,15 @@ const TrackRow: React.FC<{ track: MusicTrack; playlist: MusicTrack[] }> = ({ tra
             <div className="hidden md:flex flex-[2] h-8 items-center px-4">
                 <WaveformVisualizer track={track} height="h-6" barCount={100} interactive={true} enableAnalysis={active} />
             </div>
-            <div className="flex items-center gap-3 shrink-0">
-                <span className="hidden sm:block text-[10px] font-mono opacity-40 uppercase tracking-widest">{track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : ''}</span>
+            <div className="flex items-center gap-2 shrink-0">
+                <span className="hidden sm:block text-[9px] font-mono opacity-40 uppercase tracking-widest">{track.duration ? `${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}` : ''}</span>
                 {hasAccess ? (
-                    <button onClick={handleDownload} disabled={downloading} className="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-lg active:scale-95 disabled:opacity-50">
-                        {downloading ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
+                    <button onClick={handleDownload} disabled={downloading} className="p-2 rounded-full bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md active:scale-95 disabled:opacity-50">
+                        {downloading ? <Loader2 className="animate-spin" size={14} /> : <Download size={14} />}
                     </button>
                 ) : (
-                    <Link to={`/track/${createSlug(track.id, track.title)}`} className={`p-2 rounded-full transition-all ${isDarkMode ? 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-sky-400 hover:bg-sky-500/10' : 'bg-gray-100 text-zinc-600 hover:bg-sky-500 hover:text-white'} shadow-sm`}>
-                        <Tag size={16} />
+                    <Link to={`/track/${createSlug(track.id, track.title)}`} className={`p-2 rounded-full transition-all ${isDarkMode ? 'bg-zinc-800 text-zinc-400 hover:text-sky-400 hover:bg-sky-500/10' : 'bg-gray-100 text-zinc-600 hover:bg-sky-500 hover:text-white'} shadow-sm`}>
+                        <Tag size={14} />
                     </Link>
                 )}
             </div>

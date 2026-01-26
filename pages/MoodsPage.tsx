@@ -22,7 +22,7 @@ export const MoodsPage: React.FC = () => {
   const [tracks, setTracks] = useState<MusicTrack[]>([]);
   const [loadingTracks, setLoadingTracks] = useState(false);
   const [uncategorizedMoods, setUncategorizedMoods] = useState<string[]>([]);
-  const cloudRef = useRef<HTMLDivElement>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
   
   const gradients = [
     'bg-gradient-to-br from-emerald-500 to-green-600',
@@ -158,7 +158,7 @@ export const MoodsPage: React.FC = () => {
         setOpenCategory(title);
         setSelectedMood(null);
         setTimeout(() => {
-            cloudRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
     }
   };
@@ -255,11 +255,11 @@ export const MoodsPage: React.FC = () => {
         </div>
 
         {openCategory && (
-            <div ref={cloudRef} className="max-w-[1440px] mx-auto animate-in fade-in slide-in-from-top-4 duration-500 scroll-mt-24">
+            <div className="max-w-[1440px] mx-auto animate-in fade-in slide-in-from-top-4 duration-500 scroll-mt-36">
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
                     
-                    {/* LEFT COLUMN: Tags (1/3) */}
-                    <div className={`w-full lg:w-1/3 p-8 md:p-10 rounded-[3rem] border sticky top-24 ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-100 shadow-2xl shadow-sky-500/5'}`}>
+                    {/* LEFT COLUMN: Tags (1/3) - LG ONLY STICKY - MODIFIED FOR ANNOUNCEMENT BAR */}
+                    <div className={`w-full lg:w-1/3 p-8 md:p-10 rounded-[3rem] border lg:sticky lg:top-36 ${isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-zinc-100 shadow-2xl shadow-sky-500/5'}`}>
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
                                 <div className="p-4 bg-emerald-500 rounded-2xl text-white shadow-xl">
@@ -298,8 +298,8 @@ export const MoodsPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN: Tracks (2/3) */}
-                    <div className="w-full lg:w-2/3">
+                    {/* RIGHT COLUMN: Tracks (2/3) - MODIFIED scroll-mt FOR ANNOUNCEMENT BAR */}
+                    <div ref={resultsRef} className="w-full lg:w-2/3 scroll-mt-36">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 border-b pb-4 border-zinc-100 dark:border-zinc-800">
                             <div className="flex items-center gap-4">
                                 <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-500">
