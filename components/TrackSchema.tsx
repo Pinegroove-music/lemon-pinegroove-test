@@ -18,6 +18,7 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl, pri
   };
 
   const personId = "https://www.pinegroove.net/about#francescobiondi";
+  const validUntilDate = "2026-12-31";
 
   // Mapping dei generi come array di stringhe
   const genres = Array.isArray(track.genre) 
@@ -29,9 +30,10 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl, pri
     .filter(p => p.product_type === 'single_track_standard' || p.product_type === 'single_track_extended')
     .map(p => ({
       "@type": "Offer",
-      "name": p.product_name, // Mantiene il nome specifico (Standard Sync License / Extended Sync License)
+      "name": p.product_name,
       "price": p.price,
-      "priceCurrency": p.currency === '€' ? 'EUR' : p.currency, // Converte il simbolo in codice ISO standard
+      "priceCurrency": p.currency === '€' ? 'EUR' : p.currency,
+      "priceValidUntil": validUntilDate,
       "availability": "https://schema.org/InStock",
       "category": "Synchronization License",
       "url": currentUrl,
@@ -43,16 +45,21 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl, pri
 
   const schema = {
     "@context": "https://schema.org",
-    "@type": "MusicRecording",
+    "@type": ["MusicRecording", "Product"],
     "@id": `${currentUrl}#recording`,
     "name": track.title,
     "url": currentUrl,
     "image": track.cover_url,
     "genre": genres,
     "description": track.description || `Original music track "${track.title}" by Francesco Biondi.`,
+    "sku": `PG-TR-${track.id}`,
+    "brand": {
+      "@type": "Brand",
+      "name": "Pinegroove"
+    },
     "duration": getDurationISO(track.duration),
     "isrcCode": track.isrc,
-    "encodingFormat": "audio/wav", // Semplificato per compatibilità Google Search
+    "encodingFormat": "audio/wav",
     "byArtist": {
       "@type": "Person",
       "@id": personId,
@@ -71,6 +78,9 @@ export const TrackSchema: React.FC<TrackSchemaProps> = ({ track, currentUrl, pri
     "offers": licenseOffers.length > 0 ? licenseOffers : {
       "@type": "Offer",
       "url": currentUrl,
+      "price": "9.99",
+      "priceCurrency": "EUR",
+      "priceValidUntil": validUntilDate,
       "availability": "https://schema.org/InStock",
       "category": "Synchronization License",
       "seller": {
