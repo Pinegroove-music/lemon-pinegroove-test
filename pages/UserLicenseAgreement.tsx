@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useStore } from '../store/useStore';
 import { SEO } from '../components/SEO';
@@ -23,10 +24,11 @@ export const UserLicenseAgreement: React.FC = () => {
 
         <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
           <FileText size={48} className="mx-auto mb-6 text-sky-400" />
-          <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight uppercase text-white">
+          {/* Forced white color for header text on dark background image */}
+          <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tight uppercase !text-white drop-shadow-lg">
             Agreement
           </h1>
-          <p className="text-xl font-medium tracking-wide text-white/70">
+          <p className="text-xl font-medium tracking-wide !text-white/70 drop-shadow-md">
             User License and Services Agreement
           </p>
         </div>
@@ -236,7 +238,7 @@ export const UserLicenseAgreement: React.FC = () => {
                 <h2 className="text-2xl md:text-3xl font-black tracking-tight uppercase">7. Restrictions</h2>
               </div>
               
-              <p className="text-lg opacity-70 mb-10 font-medium">The Licensee may NOT:</p>
+              <p className="text-lg opacity-70 mb-10 font-medium max-w-3xl">The Licensee may NOT:</p>
               
               <div className="space-y-6">
                 <RestrictionItem id="A" text="Sell, sublicense, resell, share, trade, or give away the music as a stand-alone product;" />
