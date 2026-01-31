@@ -5,7 +5,7 @@ import { SEOPlaylist } from '../types';
 import { useStore } from '../store/useStore';
 import { SEO } from '../components/SEO';
 import { Link } from 'react-router-dom';
-import { Search, ArrowRight, Sparkles, Music2, ListMusic, Loader2 } from 'lucide-react';
+import { Search, ArrowRight, Sparkles, ListMusic, Loader2 } from 'lucide-react';
 
 export const PopularSearches: React.FC = () => {
   const { isDarkMode } = useStore();
@@ -82,13 +82,15 @@ export const PopularSearches: React.FC = () => {
                   alt={playlist.title} 
                   className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent group-hover:via-black/20 transition-all"></div>
+                {/* Overlay shadow for text readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-all"></div>
                 
                 <div className="absolute inset-0 p-8 flex flex-col justify-end">
                     <div className="flex items-center gap-2 text-sky-400 text-[10px] font-black uppercase tracking-widest mb-3 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
                         <ListMusic size={14} /> View Collection
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-white leading-tight drop-shadow-lg group-hover:text-sky-400 transition-colors">
+                    {/* Fixed white color using !important utility */}
+                    <h2 className="text-2xl md:text-3xl font-black !text-white leading-tight drop-shadow-2xl transition-colors">
                         {playlist.title}
                     </h2>
                 </div>
