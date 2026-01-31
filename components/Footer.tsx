@@ -8,6 +8,7 @@ export const Footer: React.FC = () => {
   const { isDarkMode, session } = useStore();
 
   const browseLinks = [
+    { label: 'Popular Searches', path: '/royalty-free-music/popular-searches' },
     { label: 'Browse Genres', path: '/categories/genres' },
     { label: 'Browse Moods', path: '/categories/moods' },
     { label: 'Browse Instruments', path: '/categories/instruments' },
